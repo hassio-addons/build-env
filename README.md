@@ -6,6 +6,7 @@
 [![License][license-shield]](LICENSE.md)
 
 [![Code Climate][codeclimate-shield]][codeclimate]
+[![CircleCI][circleci-shield]][circleci]
 
 This is a build environment for building Hass.io Docker images and is
 capable of building Docker images for multiple architectures.
@@ -294,6 +295,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 [awesome-shield]: https://img.shields.io/badge/awesome%3F-yes-brightgreen.svg
+[circleci-shield]: https://img.shields.io/circleci/project/github/hassio-addons/build-env.svg
+[circleci]: https://circleci.com/gh/hassio-addons/build-env
 [codeclimate-shield]: https://img.shields.io/codeclimate/github/hassio-addons/build-env.svg
 [codeclimate]: https://codeclimate.com/github/hassio-addons/build-env
 [contributors]: https://github.com/hassio-addons/build-env/graphs/contributors

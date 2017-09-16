@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: library/docker:17.07.0-ce
+    steps:
+      - run:
+          name: Install dependencies
+          command: apk update && apk upgrade && apk add --nocache git bash
+      - setup_remote_docker
+      - run:
+          name: Check docker is running
+          command: docker info
+      - checkout
+      - run:
+          name: Build the environment
+          command: bash ./bin/build.sh -t
