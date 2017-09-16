@@ -202,7 +202,7 @@ The following example will build a local add-on and push it onto Docker hub.
 ```bash
 docker run -it --rm --privileged --name buildenv \
     -v ~/.docker:/root/.docker \
-    -v ".":/docker \
+    -v "$(pwd)":/docker \
     hassioaddons/build-env:latest \
     --tag-latest \
     --push \
