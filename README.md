@@ -5,6 +5,8 @@
 ![Awesome][awesome-shield]
 [![License][license-shield]](LICENSE.md)
 
+[![Code Climate][codeclimate-shield]][codeclimate]
+
 This is a build environment for building Hass.io Docker images and is
 capable of building Docker images for multiple architectures.
 
@@ -291,21 +293,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-[dockerhub]: https://hub.docker.com/r/hassioaddons/build-env
-[layers-shield]: https://images.microbadger.com/badges/image/hassioaddons/build-env.svg
-[microbadger]: https://microbadger.com/images/hassioaddons/build-env
-[pulls-shield]: https://img.shields.io/docker/pulls/hassioaddons/build-env.svg
-[version-shield]: https://images.microbadger.com/badges/version/hassioaddons/build-env.svg
 [awesome-shield]: https://img.shields.io/badge/awesome%3F-yes-brightgreen.svg
+[codeclimate-shield]: https://img.shields.io/codeclimate/github/hassio-addons/build-env.svg
+[codeclimate]: https://codeclimate.com/github/hassio-addons/build-env
+[contributors]: https://github.com/hassio-addons/build-env/graphs/contributors
+[discord]: https://discord.gg/c5DvZ4e
+[dockerhub]: https://hub.docker.com/r/hassioaddons/build-env
+[forums]: https://community.home-assistant.io/t/repository-community-hass-io-add-ons/24705?u=frenck
+[frenck]: https://github.com/frenck
+[issue]: https://github.com/hassio-addons/build-env/issues
+[keepchangelog]: http://keepachangelog.com/en/1.0.0/
+[layers-shield]: https://images.microbadger.com/badges/image/hassioaddons/build-env.svg
 [license-shield]: https://img.shields.io/github/license/hassio-addons/build-env.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2017.svg
+[microbadger]: https://microbadger.com/images/hassioaddons/build-env
 [project-stage-shield]: https://img.shields.io/badge/Project%20Stage-Experimental-yellow.svg
-[repository]: https://github.com/hassio-addons/repository
-[frenck]: https://github.com/frenck
-[contributors]: https://github.com/hassio-addons/build-env/graphs/contributors
-[issue]: https://github.com/hassio-addons/build-env/issues
-[discord]: https://discord.gg/c5DvZ4e
-[forums]: https://community.home-assistant.io/t/repository-community-hass-io-add-ons/24705?u=frenck
+[pulls-shield]: https://img.shields.io/docker/pulls/hassioaddons/build-env.svg
 [reddit]: https://reddit.com/r/homeassistant
+[repository]: https://github.com/hassio-addons/repository
 [semver]: http://semver.org/spec/v2.0.0.html
-[keepchangelog]: http://keepachangelog.com/en/1.0.0/
+[version-shield]: https://images.microbadger.com/badges/version/hassioaddons/build-env.svg
