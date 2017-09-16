@@ -1038,7 +1038,7 @@ get_info_git() {
     # Is the GIT repository dirty?
     if [[ -z "$(git status --porcelain)" ]]; then
 
-        tag=$(git describe --exact-match HEAD --abbrev=0 --tags &> /dev/null \
+        tag=$(git describe --exact-match HEAD --abbrev=0 --tags 2> /dev/null \
                 || true)
         ref=$(git rev-parse --short HEAD)
 
