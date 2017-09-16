@@ -3,7 +3,7 @@
 #
 # Community Hass.io Add-ons: Build Environment
 #
-# Script for building our cross platform Docker build environment.
+# Script for building our cross platform Hass.io Docker images.
 #
 # ==============================================================================
 set -o errexit  # Exit script when a command exits with non-zero status
@@ -1315,7 +1315,7 @@ preflight_checks() {
 
     if [[ ${#BUILD_ARCHS[@]} -ne 0 ]] \
         && [[ "${BUILD_ALL}" = false ]] \
-        && [[ ! -z "${SUPPORTED_ARCHS[*]}" ]]; 
+        && [[ ! -z "${SUPPORTED_ARCHS[*]:-}" ]]; 
     then
         for arch in "${BUILD_ARCHS[@]}"; do
             [[ "${SUPPORTED_ARCHS[*]}" = *"${arch}"* ]] || \
@@ -1373,7 +1373,7 @@ prepare_defaults() {
 
     display_status_message 'Filling in configuration gaps with defaults'
 
-    [[ -z "${SUPPORTED_ARCHS[*]}" ]] \
+    [[ -z "${SUPPORTED_ARCHS[*]:-}" ]] \
         && SUPPORTED_ARCHS=(aarch64 amd64 armhf i386)
 
     if [[ "${BUILD_ALL}" = true ]]; then
@@ -1384,8 +1384,17 @@ prepare_defaults() {
     [[ -z "${BUILD_REF:-}" ]] && BUILD_REF='Unknown'
     [[ -z "${BUILD_TYPE:-}" ]] && BUILD_TYPE='addon'
     [[ -z "${BUILD_FROM:-}" ]] && BUILD_FROM='hassioaddons/base-{arch}'
+    [[ -z "${BUILD_URL:-}" && ! -z "${BUILD_REPOSITORY:-}" ]] \
+        && BUILD_URL="${BUILD_REPOSITORY}"
+    [[ -z "${BUILD_URL:-}" ]] && BUILD_URL=""
     [[ -z "${BUILD_GIT_URL:-}" ]] && BUILD_GIT_URL="${BUILD_URL}"
     [[ -z "${BUILD_DOC_URL:-}" ]] && BUILD_DOC_URL="${BUILD_URL}"
+    [[ -z "${BUILD_NAME:-}" ]] && BUILD_NAME="Unknown"
+    [[ -z "${BUILD_DESCRIPTION:-}" ]] \
+        && BUILD_DESCRIPTION="No description provided"
+    [[ -z "${BUILD_VENDOR:-}" ]] && BUILD_VENDOR="Unknown"
+    [[ -z "${BUILD_MAINTAINER:-}" ]] \
+        && BUILD_MAINTAINER="Unknown"
 
     return "${EX_OK}"
 }
