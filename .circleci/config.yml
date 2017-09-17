@@ -14,4 +14,12 @@ jobs:
       - checkout
       - run:
           name: Build the environment
-          command: bash ./bin/build.sh -t
+          command: bash ./bin/build.sh
+      - deploy:
+          name: Deploying build to Docker Hub
+          command: |
+            if [[ "${CIRCLE_BRANCH}" = "master" ]]; then
+              docker login -u ${DOCKER_LOGIN} -p ${DOCKER_PASSWORD}
+              bash ./bin/build.sh -p
+              curl -X POST ${MICROBADGER_WEBHOOK}
+            fi

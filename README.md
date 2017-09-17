@@ -5,6 +5,9 @@
 ![Awesome][awesome-shield]
 [![License][license-shield]](LICENSE.md)
 
+[![Docker Version][version-shield]][microbadger]
+[![Docker Layers][layers-shield]][microbadger]
+[![Docker Pulls][pulls-shield]][dockerhub]
 [![Code Climate][codeclimate-shield]][codeclimate]
 [![CircleCI][circleci-shield]][circleci]
 
@@ -14,12 +17,6 @@ capable of building Docker images for multiple architectures.
 _Note: This build environment is **HIGHLY EXPERIMENTAL**! It still needs
 a lot of testing, and the documentation is far from complete. Use at your
 own risk!_
-
-## Docker status
-
-[![Docker Version][version-shield]][microbadger]
-[![Docker Layers][layers-shield]][microbadger]
-[![Docker Pulls][pulls-shield]][dockerhub]
 
 ## Usage
 
