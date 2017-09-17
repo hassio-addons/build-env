@@ -14,7 +14,7 @@
 This is a build environment for building Hass.io Docker images and is
 capable of building Docker images for multiple architectures.
 
-_Note: This build environment is **HIGHLY EXPERIMENTAL**! It still needs
+Note: _This build environment is **HIGHLY EXPERIMENTAL**! It still needs
 a lot of testing, and the documentation is far from complete. Use at your
 own risk!_
 
@@ -27,7 +27,7 @@ need for "large" and complicated Bash scripts (as provided by Home Assistant).
 ```bash
 docker run -it --rm --privileged --name buildenv \
     -v ~/.docker:/root/.docker \
-    -v ".":/docker \
+    -v "$(pwd)":/docker \
     hassioaddons/build-env:latest \
     [options]
 ```
@@ -260,7 +260,7 @@ The original setup of this repository is by [Franck Nijhof][frenck].
 For a full list of all authors and contributors,
 check [the contributor's page][contributors].
 
-## Looking for Hass.io add-ons?
+## We've got some Hass.io add-ons for you
 
 Want some more functionality to your Hass.io Home Assistant instance?
 
