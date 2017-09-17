@@ -21,4 +21,5 @@ jobs:
             if [[ "${CIRCLE_BRANCH}" = "master" ]]; then
               docker login -u ${DOCKER_LOGIN} -p ${DOCKER_PASSWORD}
               bash ./bin/build.sh -p
+              curl -X POST ${MICROBADGER_WEBHOOK}
             fi
