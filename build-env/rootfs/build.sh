@@ -725,15 +725,15 @@ docker_tag() {
 # Returns:
 #   Exit code
 # ------------------------------------------------------------------------------
-docker_warup_cache() {
+docker_warmup_cache() {
     local arch=${1}
     local image
 
-    image="${BUILD_IMAGE//\{arch\}/{$arch}}"
+    image="${BUILD_IMAGE//\{arch\}/${arch}}"
     display_status_message 'Warming up cache'
 
     if ! docker pull "${image}:latest" 2>&1; then
-        display_notice_message 'Cache warup failed, continuing without it'
+        display_notice_message 'Cache warmup failed, continuing without it'
         DOCKER_CACHE=false
     fi
 
@@ -1655,7 +1655,7 @@ main() {
     display_status_message 'Warming up cache for all requested architectures'
     if [[ "${DOCKER_CACHE}" = true ]]; then
         for arch in "${BUILD_ARCHS[@]}"; do
-            (docker_warup_cache "${arch}" | sed "s/^/[${arch}] /") &
+            (docker_warmup_cache "${arch}" | sed "s/^/[${arch}] /") &
         done
     fi
     wait
