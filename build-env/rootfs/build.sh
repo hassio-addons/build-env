@@ -481,7 +481,7 @@ docker_build() {
     else
         build_args+=(--no-cache)
     fi
-    
+
     (
         docker-context-streamer "${BUILD_TARGET}" <<< "$dockerfile" \
         | docker build "${build_args[@]}" -
@@ -885,44 +885,54 @@ get_info_dockerfile() {
     ]]; then
         args=$(jq -r '.[] | select(.cmd=="arg") | .value | .[]' \
             <<< "${json}")
+
         IFS=
         while read -r arg; do
-            read -r value
-            value="${value%\"}"
-            value="${value#\"}"
+            if [[ "${arg}" = *'='* ]]; then
+                value="${arg#*=}"
+                value="${value%\"}"
+                value="${value#\"}"
+                arg="${arg%%=*}"
+            else
+                value=''
+            fi
             EXISTING_ARGS+=("${arg}")
 
-            case $arg in
-                BUILD_FROM)
-                    [[ -z "${BUILD_FROM:-}" ]] && BUILD_FROM="${value}"
-                    ;;                
-                BUILD_NAME)
-                    [[ -z "${BUILD_NAME:-}" ]] && BUILD_NAME="${value}"
-                    ;;
-                BUILD_DESCRIPTION)
-                    [[ -z "${BUILD_DESCRIPTION:-}" ]] \
-                        && BUILD_DESCRIPTION="${value}"
-                    ;;
-                BUILD_URL)
-                    [[ -z "${BUILD_URL:-}" ]] && BUILD_URL="${value}"
-                    ;;
-                BUILD_GIT_URL)
-                    [[ -z "${BUILD_GIT_URL:-}" ]] && BUILD_GIT_URL="${value}"
-                    ;;
-                BUILD_VENDOR)
-                    [[ -z "${BUILD_VENDOR:-}" ]] && BUILD_VENDOR="${value}"
-                    ;;
-                BUILD_DOC_URL)
-                    [[ -z "${BUILD_DOC_URL:-}" ]] && BUILD_DOC_URL="${value}"
-                    ;;
-                BUILD_MAINTAINER)
-                    [[ -z "${BUILD_MAINTAINER:-}" ]] \
-                        && BUILD_MAINTAINER="${value}"
-                    ;;
-                BUILD_TYPE)
-                    [[ -z "${BUILD_TYPE:-}" ]] && BUILD_TYPE="${value}"
-                    ;;
-            esac
+            if [[ ! -z "$value" ]]; then
+                case $arg in
+                    BUILD_FROM)
+                        [[ -z "${BUILD_FROM:-}" ]] && BUILD_FROM="${value}"
+                        ;;
+                    BUILD_NAME)
+                        [[ -z "${BUILD_NAME:-}" ]] && BUILD_NAME="${value}"
+                        ;;
+                    BUILD_DESCRIPTION)
+                        [[ -z "${BUILD_DESCRIPTION:-}" ]] \
+                            && BUILD_DESCRIPTION="${value}"
+                        ;;
+                    BUILD_URL)
+                        [[ -z "${BUILD_URL:-}" ]] && BUILD_URL="${value}"
+                        ;;
+                    BUILD_GIT_URL)
+                        [[ -z "${BUILD_GIT_URL:-}" ]] \
+                            && BUILD_GIT_URL="${value}"
+                        ;;
+                    BUILD_VENDOR)
+                        [[ -z "${BUILD_VENDOR:-}" ]] && BUILD_VENDOR="${value}"
+                        ;;
+                    BUILD_DOC_URL)
+                        [[ -z "${BUILD_DOC_URL:-}" ]] \
+                            && BUILD_DOC_URL="${value}"
+                        ;;
+                    BUILD_MAINTAINER)
+                        [[ -z "${BUILD_MAINTAINER:-}" ]] \
+                            && BUILD_MAINTAINER="${value}"
+                        ;;
+                    BUILD_TYPE)
+                        [[ -z "${BUILD_TYPE:-}" ]] && BUILD_TYPE="${value}"
+                        ;;
+                esac
+            fi
         done <<< "${args}"
     fi
 
