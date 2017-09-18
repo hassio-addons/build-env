@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 -
 
+## [v0.0.5][v0.0.5] (2017-09-18)
+
+[Full Changelog][v0.0.4-v0.0.5]
+
+### Fixed
+
+- Fixes issue with parsing ARG default values from Dockerfiles [#12][12]
+- Fixes issues and typo's with docker cache warmup [#13][13]
+
 ## [v0.0.4][v0.0.4] (2017-09-17)
 
 [Full Changelog][v0.0.3-v0.0.4]
@@ -53,6 +62,8 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 - Initial version, first release.
 
 [10]: https://github.com/hassio-addons/build-env/pull/10
+[12]: https://github.com/hassio-addons/build-env/pull/12
+[13]: https://github.com/hassio-addons/build-env/pull/13
 [2]: https://github.com/hassio-addons/build-env/pull/2
 [3]: https://github.com/hassio-addons/build-env/pull/3
 [4]: https://github.com/hassio-addons/build-env/pull/4
@@ -67,4 +78,6 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 [v0.0.2]: https://github.com/hassio-addons/build-env/tree/v0.0.2
 [v0.0.3-v0.0.4]: https://github.com/hassio-addons/build-env/compare/v0.0.3...v0.0.4
 [v0.0.3]: https://github.com/hassio-addons/build-env/tree/v0.0.3
+[v0.0.4-v0.0.5]: https://github.com/hassio-addons/build-env/compare/v0.0.4...v0.0.5
 [v0.0.4]: https://github.com/hassio-addons/build-env/tree/v0.0.4
+[v0.0.5]: https://github.com/hassio-addons/build-env/tree/v0.0.5
