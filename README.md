@@ -36,9 +36,9 @@ Adding `-v ~/.docker:/root/.docker` shares your Docker hub credentials with
 the built environment. This line may be omitted in case you don't want to
 push your image.
 
-Adding `-v ".":/docker` shares your current working directory as the directory
-to start the build process from. This line can be omitted in case you are
-building from a remote repository.
+Adding `-v "$(pwd)":/docker` shares your current working directory as the 
+directory to start the build process from. This line can be omitted in case 
+you are building from a remote repository.
 
 The `[options]` can be replaced by one or more of the following options:
 
@@ -51,7 +51,7 @@ Options:
     -t, --target <directory>
         The target directory containing the Dockerfile to build.
         Defaults to the current working directory (.).
-
+    
     -r, --repository <url>
         Build using a remote repository.
         Note: use --target to specify a subdirectory within the repository.
@@ -61,7 +61,7 @@ Options:
         Defaults to master.
 
     ------ Build Architectures ------
-
+    
     --aarch64
         Build for aarch64 architecture.
 
@@ -87,7 +87,7 @@ Options:
         Use a custom base image when building for aarch64.
         e.g. --aarch64-image "homeassistant/aarch64-base".
         Note: This overrides the --from flag for this architecture.
-
+        
     --amd64-from <image>
         Use a custom base image when building for amd64.
         e.g. --amd64-image "homeassistant/amd64-base".
@@ -132,6 +132,9 @@ Options:
 
     ------ Build options ------
 
+    --arg <key> <value>
+        Pass additional build arguments into the Docker build.
+
     -c, --no-cache
         Disable build from cache.
 
@@ -158,7 +161,7 @@ Options:
         Name or title of the thing that is being built.
         Note: When building add-ons; this will override the setting from
               the configuration file.
-
+        
     -d, --description <description>
         Description of the thing that is being built.
         Note: When building add-ons; this will override the setting from

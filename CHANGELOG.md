@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 ## Unreleased
 
--
+### Added
+
+- Added support for additional Docker build arguments
 
 ## [v0.0.5][v0.0.5] (2017-09-18)
 
