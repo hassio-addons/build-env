@@ -14,7 +14,9 @@ jobs:
       - run:
           name: Log in to Docker Hub
           command: |
-            if [[ "${CIRCLE_BRANCH}" = "master" ]]; then
+            if [[ "${CIRCLE_BRANCH}" = "master" 
+              || ! -z "${CIRCLE_TAG:-}" 
+            ]]; then
               docker login -u ${DOCKER_LOGIN} -p ${DOCKER_PASSWORD}
             fi
       - checkout
@@ -24,13 +26,17 @@ jobs:
       - deploy:
           name: Deploying build to Docker Hub
           command: |
-            if [[ "${CIRCLE_BRANCH}" = "master" ]]; then
+            if [[ "${CIRCLE_BRANCH}" = "master" 
+              || ! -z "${CIRCLE_TAG:-}" 
+            ]]; then
               bash ./bin/build.sh -p
             fi
       - deploy:
           name: Send notification to Microbadger
           command: |
-              if [[ "${CIRCLE_BRANCH}" = "master" ]]; then
+            if [[ "${CIRCLE_BRANCH}" = "master" 
+              || ! -z "${CIRCLE_TAG:-}" 
+            ]]; then
                 curl -X POST ${MICROBADGER_WEBHOOK}
               fi
 
