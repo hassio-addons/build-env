@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 - 
 
+## [v0.0.7][v0.0.7] (2017-09-21)
+
+[Full Changelog][v0.0.6-v0.0.7]
+
+### Fixed
+
+- Fixes CircleCI when building on a release [#18][18]
+
 ## [v0.0.6][v0.0.6] (2017-09-21)
 
 [Full Changelog][v0.0.5-v0.0.6]
@@ -78,6 +86,7 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 [13]: https://github.com/hassio-addons/build-env/pull/13
 [15]: https://github.com/hassio-addons/build-env/pull/15
 [16]: https://github.com/hassio-addons/build-env/pull/16
+[18]: https://github.com/hassio-addons/build-env/pull/18
 [2]: https://github.com/hassio-addons/build-env/pull/2
 [3]: https://github.com/hassio-addons/build-env/pull/3
 [4]: https://github.com/hassio-addons/build-env/pull/4
@@ -96,4 +105,6 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 [v0.0.4]: https://github.com/hassio-addons/build-env/tree/v0.0.4
 [v0.0.5-v0.0.6]: https://github.com/hassio-addons/build-env/compare/v0.0.5...v0.0.6
 [v0.0.5]: https://github.com/hassio-addons/build-env/tree/v0.0.5
+[v0.0.6-v0.0.7]: https://github.com/hassio-addons/build-env/compare/v0.0.6...v0.0.7
 [v0.0.6]: https://github.com/hassio-addons/build-env/tree/v0.0.6
+[v0.0.7]: https://github.com/hassio-addons/build-env/tree/v0.0.7
