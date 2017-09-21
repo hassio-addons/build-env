@@ -41,6 +41,7 @@ readonly DOCKER_TIMEOUT=20  # Wait 20 seconds for docker to start/exit
 # Global variables
 declare -a BUILD_ARCHS
 declare -A BUILD_ARCHS_FROM
+declare -A BUILD_ARGS
 declare -a EXISTING_ARGS
 declare -a EXISTING_LABELS
 declare -a SUPPORTED_ARCHS
@@ -272,6 +273,9 @@ Options:
 
     ------ Build options ------
 
+    --arg <key> <value>
+        Pass additional build arguments into the Docker build.
+
     -c, --no-cache
         Disable build from cache.
 
@@ -400,6 +404,7 @@ clone_repository() {
 #
 # Globals:
 #   BUILD_ARCHS_FROM
+#   BUILD_ARGS
 #   BUILD_DESCRIPTION
 #   BUILD_DOC_URL
 #   BUILD_FROM
@@ -474,6 +479,10 @@ docker_build() {
     [[ "${EXISTING_ARGS[*]}" = *"BUILD_DATE"* ]] && \
         build_args+=(--build-arg "BUILD_DATE=${build_date}")
 
+    for arg in "${!BUILD_ARGS[@]}"; do
+        build_args+=(--build-arg "${arg}=${BUILD_ARGS[$arg]}")
+    done
+
     build_args+=(--tag "${image}:${BUILD_VERSION}")
 
     if [[ "${DOCKER_CACHE}" = true ]]; then
@@ -481,6 +490,9 @@ docker_build() {
     else
         build_args+=(--no-cache)
     fi
+
+    IFS=' '
+    echo "docker build ${build_args[*]}"
 
     (
         docker-context-streamer "${BUILD_TARGET}" <<< "$dockerfile" \
@@ -745,6 +757,7 @@ docker_warmup_cache() {
 #
 # Globals:
 #   BUILD_ARCHS_FROM
+#   BUILD_ARGS
 #   BUILD_DESCRIPTION
 #   BUILD_DOC_URL
 #   BUILD_FROM
@@ -829,12 +842,22 @@ get_info_config() {
                 BUILD_ARCHS_FROM[${arch}]=$(jq -r \
                     ".arch_from[${arch}]" "${jsonfile}")
             fi
-            true
         done <<< "${archs}"
         
         squash=$(jq -r '.squash // empty' "${jsonfile}")
         [[ "${squash}" = "true" ]] && DOCKER_SQUASH=true
         [[ "${squash}" = "false" ]] && DOCKER_SQUASH=false
+        
+        IFS=
+        archs=$(jq -r '.args // empty | keys[]' "${jsonfile}")
+        while read -r arg; do
+            if [[ ! -z "${arg}"
+                && -z "${BUILD_ARGS["${arch}"]:-}"
+            ]]; then
+                BUILD_ARGS[${arg}]=$(jq -r \
+                    ".args[${arg}]" "${jsonfile}")
+            fi
+        done <<< "${archs}"        
         
     else
         display_notice_message \
@@ -1123,6 +1146,7 @@ is_git_repository() {
 #   BUILD_ALL
 #   BUILD_ARCHS
 #   BUILD_ARCHS_FROM
+#   BUILD_ARGS
 #   BUILD_BRANCH
 #   BUILD_DESCRIPTION
 #   BUILD_DOC_URL
@@ -1266,6 +1290,11 @@ parse_cli_arguments() {
                 ;;
             -b|--branch)
                 BUILD_BRANCH=${2}
+                shift
+                ;;
+            --arg)
+                BUILD_ARGS[${2}]=${3}
+                shift
                 shift
                 ;;
             *)

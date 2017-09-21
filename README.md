@@ -36,9 +36,9 @@ Adding `-v ~/.docker:/root/.docker` shares your Docker hub credentials with
 the built environment. This line may be omitted in case you don't want to
 push your image.
 
-Adding `-v ".":/docker` shares your current working directory as the directory
-to start the build process from. This line can be omitted in case you are
-building from a remote repository.
+Adding `-v "$(pwd)":/docker` shares your current working directory as the
+directory to start the build process from. This line can be omitted in case
+you are building from a remote repository.
 
 The `[options]` can be replaced by one or more of the following options:
 
@@ -131,6 +131,9 @@ Options:
         Upload the resulting build to Docker hub.
 
     ------ Build options ------
+
+    --arg <key> <value>
+        Pass additional build arguments into the Docker build.
 
     -c, --no-cache
         Disable build from cache.
