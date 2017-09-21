@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 ## Unreleased
 
+- 
+
+## [v0.0.6][v0.0.6] (2017-09-21)
+
+[Full Changelog][v0.0.5-v0.0.6]
+
 ### Added
 
-- Added support for additional Docker build arguments
+- Added support for additional Docker build arguments [#15][15]
+
+### Changed
+
+- CicleCI deploy on release [#16][16]
 
 ## [v0.0.5][v0.0.5] (2017-09-18)
 
@@ -66,6 +76,8 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 [10]: https://github.com/hassio-addons/build-env/pull/10
 [12]: https://github.com/hassio-addons/build-env/pull/12
 [13]: https://github.com/hassio-addons/build-env/pull/13
+[15]: https://github.com/hassio-addons/build-env/pull/15
+[16]: https://github.com/hassio-addons/build-env/pull/16
 [2]: https://github.com/hassio-addons/build-env/pull/2
 [3]: https://github.com/hassio-addons/build-env/pull/3
 [4]: https://github.com/hassio-addons/build-env/pull/4
@@ -82,4 +94,6 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 [v0.0.3]: https://github.com/hassio-addons/build-env/tree/v0.0.3
 [v0.0.4-v0.0.5]: https://github.com/hassio-addons/build-env/compare/v0.0.4...v0.0.5
 [v0.0.4]: https://github.com/hassio-addons/build-env/tree/v0.0.4
+[v0.0.5-v0.0.6]: https://github.com/hassio-addons/build-env/compare/v0.0.5...v0.0.6
 [v0.0.5]: https://github.com/hassio-addons/build-env/tree/v0.0.5
+[v0.0.6]: https://github.com/hassio-addons/build-env/tree/v0.0.6
