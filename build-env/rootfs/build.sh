@@ -491,7 +491,8 @@ docker_build() {
         build_args+=(--no-cache)
     fi
 
-    echo "docker build ${build_args[@]}"
+    IFS=' '
+    echo "docker build ${build_args[*]}"
 
     (
         docker-context-streamer "${BUILD_TARGET}" <<< "$dockerfile" \
