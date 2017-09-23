@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 ## Unreleased
 
-- 
+No unreleased changes yet.
+
+## [v0.0.8][v0.0.8] (2017-09-23)
+
+[Full Changelog][v0.0.7-v0.0.8]
+
+### Added
+
+- Hass.io 0.64 compatibility [#21][21]
+
+### Fixed
+
+- Issues with non-parallel building [#20][20]
+
+## Removed
+
+- Removed support for suggested `hassio.json` file [#21][21]
 
 ## [v0.0.7][v0.0.7] (2017-09-21)
 
@@ -88,6 +104,8 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 [16]: https://github.com/hassio-addons/build-env/pull/16
 [18]: https://github.com/hassio-addons/build-env/pull/18
 [2]: https://github.com/hassio-addons/build-env/pull/2
+[20]: https://github.com/hassio-addons/build-env/pull/20
+[21]: https://github.com/hassio-addons/build-env/pull/21
 [3]: https://github.com/hassio-addons/build-env/pull/3
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
@@ -107,4 +125,6 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 [v0.0.5]: https://github.com/hassio-addons/build-env/tree/v0.0.5
 [v0.0.6-v0.0.7]: https://github.com/hassio-addons/build-env/compare/v0.0.6...v0.0.7
 [v0.0.6]: https://github.com/hassio-addons/build-env/tree/v0.0.6
+[v0.0.7-v0.0.8]: https://github.com/hassio-addons/build-env/compare/v0.0.7...v0.0.8
 [v0.0.7]: https://github.com/hassio-addons/build-env/tree/v0.0.7
+[v0.0.8]: https://github.com/hassio-addons/build-env/tree/v0.0.8
