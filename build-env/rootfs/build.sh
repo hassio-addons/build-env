@@ -785,12 +785,7 @@ get_info_config() {
 
     if [[ -f "${BUILD_TARGET}/config.json" ]]; then
         jsonfile="${BUILD_TARGET}/config.json"
-    elif [[ -f "${BUILD_TARGET}/hassio.json" ]]; then
-        # Adds support for alternative settings file (more descriptive)
-        jsonfile="${BUILD_TARGET}/hassio.json"
-    fi
 
-    if [[ ! -z "${jsonfile:-}" ]]; then
         display_status_message "Loading information from ${jsonfile}"
 
         # Read native supported configuration values
