@@ -817,10 +817,7 @@ get_info_dockerfile() {
 # ------------------------------------------------------------------------------
 get_info_git() {
     local ref
-    local repo
     local tag
-    local url
-    local user
 
     display_status_message 'Collecting information from GIT'
 
