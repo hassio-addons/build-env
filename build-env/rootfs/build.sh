@@ -753,16 +753,12 @@ docker_warmup_cache() {
 }
 
 # ------------------------------------------------------------------------------
-# Tries to fetch information from the add-on configuration or information file
+# Tries to fetch information from the add-on configuration file
 #
 # Globals:
-#   BUILD_ARCHS_FROM
-#   BUILD_ARGS
 #   BUILD_DESCRIPTION
 #   BUILD_DOC_URL
-#   BUILD_FROM
 #   BUILD_GIT_URL
-#   BUILD_IMAGE
 #   BUILD_IMAGE
 #   BUILD_MAINTAINER
 #   BUILD_NAME
@@ -770,7 +766,6 @@ docker_warmup_cache() {
 #   BUILD_URL
 #   BUILD_VENDOR
 #   BUILD_VERSION
-#   DOCKER_SQUASH
 #   EX_OK
 #   SUPPORTED_ARCHS
 # Arguments:
@@ -779,18 +774,12 @@ docker_warmup_cache() {
 #   Exit code
 # ------------------------------------------------------------------------------
 get_info_config() {
-    local jsonfile
     local archs
-    local squash
+    local jsonfile
 
     if [[ -f "${BUILD_TARGET}/config.json" ]]; then
         jsonfile="${BUILD_TARGET}/config.json"
-    elif [[ -f "${BUILD_TARGET}/hassio.json" ]]; then
-        # Adds support for alternative settings file (more descriptive)
-        jsonfile="${BUILD_TARGET}/hassio.json"
-    fi
 
-    if [[ ! -z "${jsonfile:-}" ]]; then
         display_status_message "Loading information from ${jsonfile}"
 
         # Read native supported configuration values
@@ -817,7 +806,6 @@ get_info_config() {
 
         # Read additional configuration values, not official supported by
         # Home Assistant at this point.
-
         [[ -z "${BUILD_VENDOR:-}" ]] \
             && BUILD_VENDOR=$(jq -r '.vendor // empty' "${jsonfile}")
 
@@ -829,36 +817,80 @@ get_info_config() {
 
         [[ -z "${BUILD_GIT_URL:-}" ]] \
             && BUILD_GIT_URL=$(jq -r '.source // empty' "${jsonfile}")
+                
+    else
+        display_notice_message \
+            'Skipped loading information, file not found'
+    fi
 
-        [[ -z "${BUILD_FROM:-}" ]] \
-            && BUILD_FROM=$(jq -r '.from // empty' "${jsonfile}")
+    return "${EX_OK}"
+}
 
+# ------------------------------------------------------------------------------
+# Tries to fetch information from the add-on build configuration file
+#
+# Globals:
+#   BUILD_ARCHS_FROM
+#   BUILD_ARGS
+#   BUILD_FROM
+#   BUILD_IMAGE
+#   BUILD_TARGET
+#   BUILD_TYPE
+#   DOCKER_SQUASH
+#   EX_OK
+# Arguments:
+#   None
+# Returns:
+#   Exit code
+# ------------------------------------------------------------------------------
+get_info_build() {
+    local archs
+    local args
+    local jsonfile
+    local squash
+
+    if [[ -f "${BUILD_TARGET}/build.json" ]]; then
+        jsonfile="${BUILD_TARGET}/build.json"
+
+        display_status_message "Loading information from ${jsonfile}"
+
+        # Read native supported configuration values
         IFS=
-        archs=$(jq -r '.arch_from // empty | keys[]' "${jsonfile}")
+        archs=$(jq -r '.build_from // empty | keys[]' "${jsonfile}")
         while read -r arch; do
             if [[ ! -z "${arch}"
                 && -z "${BUILD_ARCHS_FROM["${arch}"]:-}"
             ]]; then
                 BUILD_ARCHS_FROM[${arch}]=$(jq -r \
-                    ".arch_from[${arch}]" "${jsonfile}")
+                    ".build_from | .${arch}" "${jsonfile}")
             fi
         done <<< "${archs}"
         
         squash=$(jq -r '.squash // empty' "${jsonfile}")
         [[ "${squash}" = "true" ]] && DOCKER_SQUASH=true
         [[ "${squash}" = "false" ]] && DOCKER_SQUASH=false
-        
+
         IFS=
-        archs=$(jq -r '.args // empty | keys[]' "${jsonfile}")
+        args=$(jq -r '.args // empty | keys[]' "${jsonfile}")
         while read -r arg; do
             if [[ ! -z "${arg}"
                 && -z "${BUILD_ARGS["${arch}"]:-}"
             ]]; then
                 BUILD_ARGS[${arg}]=$(jq -r \
-                    ".args[${arg}]" "${jsonfile}")
+                    ".args | .${arg}" "${jsonfile}")
             fi
-        done <<< "${archs}"        
+        done <<< "${args}"        
         
+        # Read additional configuration values, not official supported by
+        # Home Assistant at this point.
+        [[ -z "${BUILD_FROM:-}" ]] \
+            && BUILD_FROM=$(jq -r '.from // empty' "${jsonfile}")
+
+        [[ -z "${BUILD_TYPE:-}" ]] \
+            && BUILD_TYPE=$(jq -r '.type // empty' "${jsonfile}")
+
+        [[ -z "${BUILD_IMAGE:-}" ]] \
+            && BUILD_IMAGE=$(jq -r '.image // empty' "${jsonfile}")
     else
         display_notice_message \
             'Skipped loading information, file not found'
@@ -1665,6 +1697,7 @@ main() {
 
     # Gather build information
     get_info_config
+    get_info_build
     if [[ "${USE_GIT}" = true ]]; then
         is_git_repository
         get_info_git
