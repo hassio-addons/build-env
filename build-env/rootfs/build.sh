@@ -42,7 +42,6 @@ readonly DOCKER_TIMEOUT=20  # Wait 20 seconds for docker to start/exit
 declare -a BUILD_ARCHS
 declare -A BUILD_ARCHS_FROM
 declare -A BUILD_ARGS
-declare -a EXISTING_ARGS
 declare -a EXISTING_LABELS
 declare -a SUPPORTED_ARCHS
 declare -i DOCKER_PID
@@ -50,7 +49,6 @@ declare BUILD_ALL=false
 declare BUILD_BRANCH
 declare BUILD_FROM
 declare BUILD_IMAGE
-declare BUILD_LABEL_OVERRIDE
 declare BUILD_PARALLEL
 declare BUILD_REF
 declare BUILD_REPOSITORY
@@ -69,7 +67,6 @@ declare USE_GIT
 # Defaults values
 BUILD_ARCHS=()
 BUILD_BRANCH='master'
-BUILD_LABEL_OVERRIDE=false
 BUILD_PARALLEL=true
 BUILD_TARGET=$(pwd)
 DOCKER_CACHE=true
@@ -372,7 +369,6 @@ clone_repository() {
 #   DOCKERFILE
 #   EX_DOCKER_BUILD
 #   EX_OK
-#   EXISTING_ARGS
 # Arguments:
 #   $1 Architecture to build
 # Returns:
@@ -403,19 +399,15 @@ docker_build() {
         build_args+=(--build-arg "BUILD_FROM=${from}")
     fi  
 
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_REF"* ]] && \
-        build_args+=(--build-arg "BUILD_REF=${BUILD_REF}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_TYPE"* ]] && \
-        build_args+=(--build-arg "BUILD_TYPE=${BUILD_TYPE}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_ARCH"* ]] && \
-        build_args+=(--build-arg "BUILD_ARCH=${arch}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_DATE"* ]] && \
-        build_args+=(--build-arg "BUILD_DATE=${build_date}")
+    build_args+=(--build-arg "BUILD_REF=${BUILD_REF}")
+    build_args+=(--build-arg "BUILD_TYPE=${BUILD_TYPE}")
+    build_args+=(--build-arg "BUILD_ARCH=${arch}")
+    build_args+=(--build-arg "BUILD_DATE=${build_date}")
 
     for arg in "${!BUILD_ARGS[@]}"; do
         build_args+=(--build-arg "${arg}=${BUILD_ARGS[$arg]}")
     done
-
+    
     build_args+=(--tag "${image}:${BUILD_VERSION}")
 
     if [[ "${DOCKER_CACHE}" = true ]]; then
@@ -885,7 +877,6 @@ is_git_repository() {
 #   BUILD_BRANCH
 #   BUILD_FROM
 #   BUILD_IMAGE
-#   BUILD_LABEL_OVERRIDE
 #   BUILD_PARALLEL
 #   BUILD_REPOSITORY
 #   BUILD_TARGET
@@ -971,9 +962,6 @@ parse_cli_arguments() {
             --type)
                 BUILD_TYPE=${2}
                 shift
-                ;;
-            -o|--override)
-                BUILD_LABEL_OVERRIDE=true
                 ;;
             -t|--target)
                 BUILD_TARGET=${2}
@@ -1116,10 +1104,8 @@ prepare_defaults() {
 # This is mainly to maintain some form of backwards compatibility
 #
 # Globals:
-#   BUILD_LABEL_OVERRIDE
 #   DOCKERFILE
 #   EX_OK
-#   EXISTING_ARGS
 #   EXISTING_LABELS
 # Arguments:
 #   None
@@ -1134,36 +1120,12 @@ prepare_dockerfile() {
     # Ensure Dockerfile ends with a empty line
     DOCKERFILE+=$'\n'
 
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.type"*
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_TYPE"* ]]; then
-            DOCKERFILE+="ARG BUILD_TYPE"$'\n'
-            EXISTING_ARGS+=(BUILD_TYPE)
-        fi
-        labels+=("io.hass.type=\${BUILD_TYPE}")
-    fi
-
-    if [[
-        "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.version"*
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_VERSION"* ]]; then
-            DOCKERFILE+="ARG BUILD_VERSION"$'\n'
-            EXISTING_ARGS+=(BUILD_VERSION)
-        fi
-        labels+=("io.hass.version=\${BUILD_VERSION}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.arch"*
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_ARCH"* ]]; then
-            DOCKERFILE+="ARG BUILD_ARCH"$'\n'
-            EXISTING_ARGS+=(BUILD_ARCH)
-        fi
-        labels+=("io.hass.arch=\${BUILD_ARCH}")
-    fi
+    [[ ! "${EXISTING_LABELS[*]:-}" = *"io.hass.type"* ]] \
+        && labels+=("io.hass.type=${BUILD_TYPE}")
+    [[ ! "${EXISTING_LABELS[*]:-}" = *"io.hass.version"* ]] \
+        && labels+=("io.hass.version=${BUILD_VERSION}")
+    [[ ! "${EXISTING_LABELS[*]:-}" = *"io.hass.arch"* ]] \
+        && labels+=("io.hass.arch=${BUILD_ARCH}")
 
     if [[ ${#labels[@]} -ne 0 ]]; then
         IFS=" "
