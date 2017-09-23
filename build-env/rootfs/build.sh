@@ -1477,7 +1477,6 @@ prepare_defaults() {
 #
 # Globals:
 #   BUILD_LABEL_OVERRIDE
-#   BUILD_LABEL_OVERRIDE
 #   DOCKERFILE
 #   EX_OK
 #   EXISTING_ARGS
@@ -1488,31 +1487,9 @@ prepare_defaults() {
 #   Exit code
 # ------------------------------------------------------------------------------
 prepare_dockerfile() {
-    local inject_from
     local -a labels
 
     display_status_message 'Preparing Dockerfile for use'
-
-    inject_from=false
-
-    DOCKERFILE="${DOCKERFILE//%%ARCH%%/\{arch\}}"
-
-    if grep -q "FROM %%BASE_IMAGE%%" <<< "${DOCKERFILE}"; then
-        DOCKERFILE=$(grep -v "FROM %%BASE_IMAGE%%" <<< "${DOCKERFILE}")
-        inject_from=true
-    fi
-
-    if grep -qE "^#(aarch64|amd64|armhf|i386):FROM .*$" <<< "${DOCKERFILE}"; then
-        DOCKERFILE=$(grep -vE "^#(aarch64|amd64|armhf|i386):FROM .*$" \
-                        <<< "${DOCKERFILE}")
-        inject_from=true
-    fi
-
-    if [[ "${inject_from}" = true ]]; then
-        DOCKERFILE=$(sed "1 i\ARG BUILD_FROM" <<< "${DOCKERFILE}")
-        DOCKERFILE=$(sed "2 i\FROM \$BUILD_FROM" <<< "${DOCKERFILE}")
-        EXISTING_ARGS+=(BUILD_FROM)
-    fi
 
     # Ensure Dockerfile ends with a empty line
     DOCKERFILE+=$'\n'
