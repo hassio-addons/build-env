@@ -1699,7 +1699,7 @@ main() {
         wait
     else
         for arch in "${BUILD_ARCHS[@]}"; do
-            build "${arch}" | sed "s/^/[${arch}] /"
+            docker_build "${arch}" | sed "s/^/[${arch}] /"
         done
     fi  
     display_status_message 'Build of all requested architectures finished'
