@@ -192,18 +192,18 @@ Options:
         Defaults to master.
 
     ------ Build Architectures ------
-    
+
     --aarch64
-        Build for aarch64 architecture.
+        Build for aarch64 (arm 64 bits) architecture.
 
     --amd64
-        Build for amd64 architecture.
+        Build for amd64 (intel/amd 64 bits) architecture.
 
     --armhf
-        Build for armhf architecture.
+        Build for armhf (arm 32 bits) architecture.
 
     --i386
-        Build for i386 architecture.
+        Build for i386 (intel/amd 32 bits) architecture.
 
     -a, --all
         Build for all architectures.
@@ -218,7 +218,7 @@ Options:
         Use a custom base image when building for aarch64.
         e.g. --aarch64-image "homeassistant/aarch64-base".
         Note: This overrides the --from flag for this architecture.
-        
+
     --amd64-from <image>
         Use a custom base image when building for amd64.
         e.g. --amd64-image "homeassistant/amd64-base".
