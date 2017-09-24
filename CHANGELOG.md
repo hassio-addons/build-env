@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.2.1][v0.2.1] (2017-09-24)
+
+[Full Changelog][v0.2.0-v0.2.1]
+
+### Changed
+
+- Moved buildscript into a better place [#29][29]
+
+### Fixed
+
+- Issue with CircleCI missing releases [#28][28]
+
 ## [v0.2.0][v0.2.0] (2017-09-24)
 
 [Full Changelog][v0.1.1-v0.2.0]
@@ -143,6 +155,8 @@ No unreleased changes yet.
 [23]: https://github.com/hassio-addons/build-env/pull/23
 [25]: https://github.com/hassio-addons/build-env/pull/25
 [27]: https://github.com/hassio-addons/build-env/pull/27
+[28]: https://github.com/hassio-addons/build-env/pull/28
+[29]: https://github.com/hassio-addons/build-env/pull/29
 [3]: https://github.com/hassio-addons/build-env/pull/3
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
@@ -170,4 +184,6 @@ No unreleased changes yet.
 [v0.1.0]: https://github.com/hassio-addons/build-env/tree/v0.1.0
 [v0.1.1-v0.2.0]: https://github.com/hassio-addons/build-env/compare/v0.1.1...v0.2.0
 [v0.1.1]: https://github.com/hassio-addons/build-env/tree/v0.1.1
+[v0.2.0-v0.2.1]: https://github.com/hassio-addons/build-env/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/hassio-addons/build-env/tree/v0.2.0
+[v0.2.1]: https://github.com/hassio-addons/build-env/tree/v0.2.1
