@@ -119,11 +119,6 @@ Options:
 
     ------ Build meta data ------
 
-    -g, --git
-        Use GIT for version tags instead of the add-on configuration file.
-        Note: This will ONLY work when your GIT repository only contains
-              a single add-on or other Docker container!
-
     --type <type>
         The type of the thing you are building.
         Valid values are: addon, base, cluster, homeassistant and supervisor.
