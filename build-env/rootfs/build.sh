@@ -27,12 +27,13 @@ readonly EX_GIT_CLONE=10        # Failed cloning Git repository
 readonly EX_INVALID_TYPE=11     # Invalid build type
 readonly EX_MULTISTAGE=12       # Dockerfile contains multiple stages
 readonly EX_NO_ARCHS=13         # No architectures to build
-readonly EX_NO_IMAGE_NAME=14    # Missing name of image to build
-readonly EX_NOT_EMPTY=15        # Workdirectory is not empty
-readonly EX_NOT_GIT=16          # This is not a Git repository
-readonly EX_PRIVILEGES=17       # Missing extended privileges
-readonly EX_SUPPORTED=18        # Requested build architecture is not supported
-readonly EX_VERSION=19          # Version not found and specified
+readonly EX_NO_FROM=14          # Missing image to build from
+readonly EX_NO_IMAGE_NAME=15    # Missing name of image to build
+readonly EX_NOT_EMPTY=16        # Workdirectory is not empty
+readonly EX_NOT_GIT=17          # This is not a Git repository
+readonly EX_PRIVILEGES=18       # Missing extended privileges
+readonly EX_SUPPORTED=19        # Requested build architecture is not supported
+readonly EX_VERSION=20          # Version not found and specified
 
 # Constants
 readonly DOCKER_PIDFILE='/var/run/docker.pid' # Docker daemon PID file
@@ -810,11 +811,17 @@ preflight_checks() {
         done
     fi
 
+    for arch in "${BUILD_ARCHS[@]}"; do
+        [[ "${BUILD_ARCHS_FROM[${arch}]}" ]] \
+            || display_error_message \
+                "Requested to build for ${arch}, but the image to build from is missing" \
+                "${EX_NO_FROM}"
+    done
+
     [[ $(awk '/^FROM/{a++}END{print a}' <<< "${DOCKERFILE}") -le 1 ]] || \
         display_error_message 'The Dockerfile seems to be multistage!' \
         "${EX_MULTISTAGE}"
 
-    # Notices
     [[ -z "${BUILD_IMAGE:-}" ]] \
         && display_help "${EX_NO_IMAGE_NAME}" 'Missing build image name'
 
@@ -963,9 +970,4 @@ main() {
     # Fin
     exit "${EX_OK}"
 }
-
-# Bootstrap
-if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
-    # Direct call to file
-    main "$@"
-fi  # Else file is included from another script
+main "$@"
