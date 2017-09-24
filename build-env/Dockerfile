@@ -30,6 +30,7 @@ RUN \
         ca-certificates \
         curl \
         git \
+        iproute2 \
         jq \
         python3 \
         python3-pip \

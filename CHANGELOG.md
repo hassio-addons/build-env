@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.2.0][v0.2.0] (2017-09-24)
+
+[Full Changelog][v0.1.1-v0.2.0]
+
+### Added
+
+- Reverted most of the changes in v0.1.0 [#27][27]
+- Correct handling for failing background jobs [#27][27]
+
+### Changed
+
+- Improved Git logic [#27][27]
+
+### Removed
+
+- Removed support for other build types [#27][27]
+- Removed backward compatibility Hassio 0.63 and lower [#27][27]
+
 ## [v0.1.1][v0.1.1] (2017-09-24)
 
 [Full Changelog][v0.1.0-v0.1.1]
@@ -124,6 +142,7 @@ No unreleased changes yet.
 [21]: https://github.com/hassio-addons/build-env/pull/21
 [23]: https://github.com/hassio-addons/build-env/pull/23
 [25]: https://github.com/hassio-addons/build-env/pull/25
+[27]: https://github.com/hassio-addons/build-env/pull/27
 [3]: https://github.com/hassio-addons/build-env/pull/3
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
@@ -149,4 +168,6 @@ No unreleased changes yet.
 [v0.0.8]: https://github.com/hassio-addons/build-env/tree/v0.0.8
 [v0.1.0-v0.1.1]: https://github.com/hassio-addons/build-env/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/hassio-addons/build-env/tree/v0.1.0
+[v0.1.1-v0.2.0]: https://github.com/hassio-addons/build-env/compare/v0.1.1...v0.2.0
 [v0.1.1]: https://github.com/hassio-addons/build-env/tree/v0.1.1
+[v0.2.0]: https://github.com/hassio-addons/build-env/tree/v0.2.0
