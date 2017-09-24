@@ -811,10 +811,10 @@ preflight_checks() {
         done
     fi
 
-    for arch in "${BUILD_ARCHS[@]}"; do
-        [[ "${BUILD_ARCHS_FROM[${arch}]}" ]] \
-            || display_error_message \
-                "Requested to build for ${arch}, but the image to build from is missing" \
+    for arch in "${SUPPORTED_ARCHS[@]}"; do
+        [[ ! -z $arch && -z "${BUILD_ARCHS_FROM[${arch}]:-}" ]] \
+            && display_error_message \
+                "Architucure ${arch}, is missing a image to build from" \
                 "${EX_NO_FROM}"
     done
 
@@ -918,8 +918,8 @@ main() {
     get_info_dockerfile
 
     # Getting ready
-    preflight_checks
     prepare_defaults
+    preflight_checks
     prepare_dockerfile
 
     # Docker daemon startup

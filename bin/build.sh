@@ -476,9 +476,4 @@ main() {
 
     exit "${EX_OK}"
 }
-
-# Bootstrap
-if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
-    # Direct call to file
-    main "$@"
-fi  # Else file is included from another script
+main "$@"
