@@ -47,8 +47,6 @@ DOCKER_CACHE=true
 # ------------------------------------------------------------------------------
 # Displays a simple program header
 #
-# Globals:
-#   None
 # Arguments:
 #   None
 # Returns:
@@ -63,8 +61,6 @@ display_banner() {
 # ------------------------------------------------------------------------------
 # Displays a error message and is able to terminate te script execution
 #
-# Globals:
-#   None
 # Arguments:
 #   $1 Error message
 #   $2 Exit code, script will continue execution when omitted
@@ -87,8 +83,6 @@ display_error_message() {
 # ------------------------------------------------------------------------------
 # Displays a notice
 #
-# Globals:
-#   None
 # Arguments:
 #   $* Notice message to display
 # Returns:
@@ -105,8 +99,6 @@ display_notice_message() {
 # ------------------------------------------------------------------------------
 # Displays a status message
 #
-# Globals:
-#   None
 # Arguments:
 #   $* Status message to display
 # Returns:
@@ -121,8 +113,6 @@ display_status_message() {
 # ------------------------------------------------------------------------------
 # Displays the help of this program
 #
-# Globals:
-#   EX_OK
 # Arguments:
 #   $1 Exit code
 #   $2 Error message
@@ -169,13 +159,6 @@ EOF
 # ------------------------------------------------------------------------------
 # Docker build the build environment
 #
-# Globals:
-#   BUILD_IMAGE
-#   BUILD_REF
-#   BUILD_VERSION
-#   DOCKER_CACHE
-#   EX_DOCKER_BUILD
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -213,13 +196,7 @@ docker_build() {
 
 # ------------------------------------------------------------------------------
 # Push Docker build result to DockerHub
-# Globals:
-#   BUILD_IMAGE
-#   BUILD_VERSION
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_DOCKER_PUSH
-#   EX_OK
+#
 # Arguments:
 #   None
 # Returns:
@@ -255,13 +232,6 @@ docker_push() {
 # ------------------------------------------------------------------------------
 # Places 'latest'/'test' tag(s) onto the current build result
 #
-# Globals:
-#   BUILD_IMAGE
-#   BUILD_VERSION
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_DOCKER_TAG
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -288,10 +258,6 @@ docker_tag() {
 # ------------------------------------------------------------------------------
 # Try to pull latest version of the current image to use as cache
 #
-# Globals:
-#   DOCKER_CACHE
-#   DOCKER_IMAGE
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -310,9 +276,6 @@ docker_warup_cache() {
 # ------------------------------------------------------------------------------
 # Check to see if the Docker daemon is actually running
 #
-# Globals:
-#   EX_DOCKER
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -332,34 +295,30 @@ require_docker_running() {
 # ------------------------------------------------------------------------------
 # Tries to fetch information from the GIT repository
 #
-# Globals:
-#   BUILD_REF
-#   BUILD_VERSION
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
 #   Exit code
 # ------------------------------------------------------------------------------
-git_get_info() {
-    local tag
+get_info_git() {
+    local branch    
     local ref
+    local tag
 
     display_status_message 'Collecting information from GIT'
 
-    # Is the GIT repository dirty?
+    # Is the Git repository dirty? (Uncomitted changes in repository)
     if [[ -z "$(git status --porcelain)" ]]; then
 
+        branch=$(git rev-parse --abbrev-ref HEAD)
         tag=$(git describe --exact-match HEAD --abbrev=0 --tags 2> /dev/null \
                 || true)
         ref=$(git rev-parse --short HEAD)
 
         BUILD_REF="${ref}"
 
-        # Is current HEAD on a tag?
-        if [[ ! -z "${tag:-}" ]]; then
+        # Is current HEAD on a tag and master branch?
+        if [[ ! -z "${tag:-}" && "${branch}" = "master" ]]; then
             # Is it the latest tag?
             if [[ "$(git describe --abbrev=0 --tags)" = "${tag}" ]]; then
                 DOCKER_TAG_LATEST=true
@@ -368,13 +327,12 @@ git_get_info() {
         else
             # We are clean, but version is unknown, use commit SHA as version
             BUILD_VERSION="${ref}"
-            DOCKER_TAG_TEST=true
+            [[ "${branch}" = "master" ]] && DOCKER_TAG_TEST=true
         fi
     else
-        # Uncomitted changes on the GIT repository, dirty!
+        # Uncomitted changes on the Git repository, dirty!
         BUILD_REF="dirty"
-        BUILD_VERSION="dirty"
-        DOCKER_TAG_TEST=true
+        BUILD_VERSION="dev"
     fi
 
     return "${EX_OK}"
@@ -383,9 +341,6 @@ git_get_info() {
 # ------------------------------------------------------------------------------
 # Ensure this directory / build environment is actually a GIT repository
 #
-# Globals:
-#   EX_GIT
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -404,12 +359,7 @@ require_git_repository() {
 
 # ------------------------------------------------------------------------------
 # Parse CLI arguments
-# Globals:
-#   DOCKER_CACHE
-#   DOCKER_PUSH
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_UNKNOWN
+#
 # Arguments:
 #   None
 # Returns:
@@ -444,15 +394,6 @@ parse_cli_arguments() {
 # ==============================================================================
 # RUN LOGIC
 # ------------------------------------------------------------------------------
-# Globals:
-#   DOCKER_CACHE
-#   DOCKER_PUSH
-#   EX_OK
-# Arguments:
-#   None
-# Returns:
-#   None
-# ------------------------------------------------------------------------------
 main() {
     # Parse input
     display_banner
@@ -463,7 +404,7 @@ main() {
     require_git_repository
 
     # Gather build information
-    git_get_info
+    get_info_git
 
     # Cache warming
     [[ "${DOCKER_CACHE}" = true ]] && docker_warup_cache
@@ -476,4 +417,9 @@ main() {
 
     exit "${EX_OK}"
 }
-main "$@"
+
+# Bootstrap
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+    # Direct call to file
+    main "$@"
+fi  # Else file is included from another script
