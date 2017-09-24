@@ -81,34 +81,6 @@ Options:
         a configuration file, that list is still honored when using
         this flag.
 
-    ------ Build base images ------
-
-    --aarch64-from <image>
-        Use a custom base image when building for aarch64.
-        e.g. --aarch64-image "homeassistant/aarch64-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --amd64-from <image>
-        Use a custom base image when building for amd64.
-        e.g. --amd64-image "homeassistant/amd64-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --armhf-from <image>
-        Use a custom base image when building for armhf.
-        e.g. --armhf-image "homeassistant/armhf-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --i386-from <image>
-        Use a custom base image when building for i386.
-        e.g. --i386-image "homeassistant/i386-image".
-        Note: This overrides the --from flag for this architecture.
-
-    -f, --from <image>
-        Use a custom base image when building.
-        Use '{arch}' as a placeholder for the architecture name.
-        e.g., --from "homeassistant/{arch}-base"
-        Defaults to "hassioaddons/base-{arch}"
-
     ------ Build output ------
 
     -i, --image <image>

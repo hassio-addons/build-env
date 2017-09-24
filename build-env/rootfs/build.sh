@@ -47,7 +47,6 @@ declare -a SUPPORTED_ARCHS
 declare -i DOCKER_PID
 declare BUILD_ALL=false
 declare BUILD_BRANCH
-declare BUILD_FROM
 declare BUILD_IMAGE
 declare BUILD_PARALLEL
 declare BUILD_REF
@@ -212,34 +211,6 @@ Options:
         a configuration file, that list is still honored when using
         this flag.
 
-    ------ Build base images ------
-
-    --aarch64-from <image>
-        Use a custom base image when building for aarch64.
-        e.g. --aarch64-image "homeassistant/aarch64-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --amd64-from <image>
-        Use a custom base image when building for amd64.
-        e.g. --amd64-image "homeassistant/amd64-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --armhf-from <image>
-        Use a custom base image when building for armhf.
-        e.g. --armhf-image "homeassistant/armhf-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --i386-from <image>
-        Use a custom base image when building for i386.
-        e.g. --i386-image "homeassistant/i386-image".
-        Note: This overrides the --from flag for this architecture.
-
-    -f, --from <image>
-        Use a custom base image when building.
-        Use '{arch}' as a placeholder for the architecture name.
-        e.g., --from "homeassistant/{arch}-base"
-        Defaults to "hassioaddons/base-{arch}"
-
     ------ Build output ------
 
     -i, --image <image>
@@ -358,7 +329,6 @@ clone_repository() {
 # Globals:
 #   BUILD_ARCHS_FROM
 #   BUILD_ARGS
-#   BUILD_FROM
 #   BUILD_IMAGE
 #   BUILD_REF
 #   BUILD_TARGET
@@ -379,7 +349,6 @@ docker_build() {
     local arch=${1}
     local build_date
     local dockerfile
-    local from
     local image
 
     display_status_message 'Running Docker build'
@@ -390,15 +359,8 @@ docker_build() {
 
     build_args+=(--pull)
     build_args+=(--compress)
-    [[ "${DOCKER_SQUASH}" = true ]] && build_args+=(--squash)
-
-    if [[ "${BUILD_ARCHS_FROM[${arch}]}" ]]; then
-        build_args+=(--build-arg "BUILD_FROM=${BUILD_ARCHS_FROM[${arch}]}")
-    else
-        from="${BUILD_FROM//\{arch\}/${arch}}"
-        build_args+=(--build-arg "BUILD_FROM=${from}")
-    fi  
-
+    build_args+=(--tag "${image}:${BUILD_VERSION}")
+    build_args+=(--build-arg "BUILD_FROM=${BUILD_ARCHS_FROM[${arch}]}")
     build_args+=(--build-arg "BUILD_REF=${BUILD_REF}")
     build_args+=(--build-arg "BUILD_TYPE=${BUILD_TYPE}")
     build_args+=(--build-arg "BUILD_ARCH=${arch}")
@@ -408,7 +370,7 @@ docker_build() {
         build_args+=(--build-arg "${arg}=${BUILD_ARGS[$arg]}")
     done
     
-    build_args+=(--tag "${image}:${BUILD_VERSION}")
+    [[ "${DOCKER_SQUASH}" = true ]] && build_args+=(--squash)
 
     if [[ "${DOCKER_CACHE}" = true ]]; then
         build_args+=(--cache-from "${image}:latest")
@@ -683,7 +645,6 @@ docker_warmup_cache() {
 # Globals:
 #   BUILD_ARCHS_FROM
 #   BUILD_ARGS
-#   BUILD_FROM
 #   BUILD_IMAGE
 #   BUILD_TYPE
 #   BUILD_VERSION
@@ -872,10 +833,8 @@ is_git_repository() {
 # Globals:
 #   BUILD_ALL
 #   BUILD_ARCHS
-#   BUILD_ARCHS_FROM
 #   BUILD_ARGS
 #   BUILD_BRANCH
-#   BUILD_FROM
 #   BUILD_IMAGE
 #   BUILD_PARALLEL
 #   BUILD_REPOSITORY
@@ -913,26 +872,6 @@ parse_cli_arguments() {
                 ;;
             --all)
                 BUILD_ALL=true
-                ;;
-            --aarch64-from)
-                BUILD_ARCHS_FROM['aarch64']=${2}
-                shift
-                ;;
-            --amd64-from)
-                BUILD_ARCHS_FROM['amd64']=${2}
-                shift
-                ;;
-            --armhf-from)
-                BUILD_ARCHS_FROM['armhf']=${2}
-                shift
-                ;;
-            --i386-from)
-                BUILD_ARCHS_FROM['i386']=${2}
-                shift
-                ;;
-            -f|--from)
-                BUILD_FROM=${2}
-                shift
                 ;;
             -i|--image)
                 BUILD_IMAGE=${2}
@@ -1067,7 +1006,6 @@ preflight_checks() {
 # Globals:
 #   BUILD_ALL
 #   BUILD_DOC_URL
-#   BUILD_FROM
 #   BUILD_GIT_URL
 #   BUILD_REF
 #   BUILD_TYPE
@@ -1093,7 +1031,6 @@ prepare_defaults() {
 
     [[ -z "${BUILD_REF:-}" ]] && BUILD_REF='Unknown'
     [[ -z "${BUILD_TYPE:-}" ]] && BUILD_TYPE='addon'
-    [[ -z "${BUILD_FROM:-}" ]] && BUILD_FROM='hassioaddons/base-{arch}'
 
     return "${EX_OK}"
 }
