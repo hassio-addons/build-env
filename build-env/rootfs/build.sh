@@ -1127,7 +1127,7 @@ prepare_dockerfile() {
     [[ ! "${EXISTING_LABELS[*]:-}" = *"io.hass.arch"* ]] \
         && labels+=("io.hass.arch=${BUILD_ARCH}")
 
-    if [[ ${#labels[@]} -ne 0 ]]; then
+    if [[ ! -z "${labels[*]:-}" ]]; then
         IFS=" "
         DOCKERFILE+="LABEL ${labels[*]}"$'\n'
     fi
