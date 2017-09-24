@@ -11,7 +11,7 @@ VOLUME /var/lib/docker
 WORKDIR /docker
 
 # Entrypoint 
-ENTRYPOINT [ "/build.sh" ]
+ENTRYPOINT [ "/usr/bin/build.sh" ]
 
 # Copy root filesystem
 COPY rootfs /
@@ -58,7 +58,7 @@ RUN \
         curl \
         python3-pip \
         software-properties-common \
-    && chmod a+x /build.sh \
+    && chmod a+x /usr/bin/build.sh \
     && apt-get -y autoremove \
     && apt-get -y purge \
     && apt-get -y clean \
