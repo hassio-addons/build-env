@@ -119,11 +119,6 @@ Options:
 
     ------ Build meta data ------
 
-    -g, --git
-        Use GIT for version tags instead of the add-on configuration file.
-        Note: This will ONLY work when your GIT repository only contains
-              a single add-on or other Docker container!
-
     --type <type>
         The type of the thing you are building.
         Valid values are: addon, base, cluster, homeassistant and supervisor.
@@ -149,16 +144,15 @@ docker run -it --rm --privileged --name buildenv \
 
 ### Building from a remote GitHub repository
 
-The following example will build the `snips` core add-on created by the
-Home Assistant team. It will build it for all architectures supported by
-this add-on.
+The following example will build the `example` add-on. It will build it for
+all architectures supported by that add-on.
 
 ```bash
 docker run -it --rm --privileged --name build \
     hassioaddons/build-env:latest \
-    --repository https://github.com/home-assistant/hassio-addons \
-    --target snips \
-    --tag-latest \
+    --repository https://github.com/hassio-addons/addon-example \
+    --target example \
+    --tag-test \
     --all
 ```
 

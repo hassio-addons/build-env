@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.1.1][v0.1.1] (2017-09-24)
+
+[Full Changelog][v0.1.0-v0.1.1]
+
+### Removed
+
+- Removes privileged check [#25][25]
+
 ## [v0.1.0][v0.1.0] (2017-09-24)
 
 [Full Changelog][v0.0.8-v0.1.0]
@@ -115,6 +123,7 @@ No unreleased changes yet.
 [20]: https://github.com/hassio-addons/build-env/pull/20
 [21]: https://github.com/hassio-addons/build-env/pull/21
 [23]: https://github.com/hassio-addons/build-env/pull/23
+[25]: https://github.com/hassio-addons/build-env/pull/25
 [3]: https://github.com/hassio-addons/build-env/pull/3
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
@@ -138,4 +147,6 @@ No unreleased changes yet.
 [v0.0.7]: https://github.com/hassio-addons/build-env/tree/v0.0.7
 [v0.0.8-v0.1.0]: https://github.com/hassio-addons/build-env/compare/v0.0.8...v0.1.0
 [v0.0.8]: https://github.com/hassio-addons/build-env/tree/v0.0.8
+[v0.1.0-v0.1.1]: https://github.com/hassio-addons/build-env/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/hassio-addons/build-env/tree/v0.1.0
+[v0.1.1]: https://github.com/hassio-addons/build-env/tree/v0.1.1
