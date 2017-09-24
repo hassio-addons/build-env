@@ -23,13 +23,13 @@ readonly EX_DOCKER_PUSH=6       # Failed pushing Docker image
 readonly EX_DOCKER_TAG=7        # Failed setting Docker tag
 readonly EX_DOCKER_TIMEOUT=8    # Timout starting docker
 readonly EX_DOCKERFILE=9        # Dockerfile is missing?
-readonly EX_GIT_CLONE=10        # Failed cloning GIT repository
-readonly EX_GIT=12              # Is this a GIT repository?
-readonly EX_INVALID_TYPE=12     # Invalid build type
-readonly EX_MULTISTAGE=13       # Dockerfile contains multiple stages
-readonly EX_NO_ARCHS=14         # No architectures to build
-readonly EX_NO_IMAGE_NAME=15    # Missing name of image to build
-readonly EX_NOT_EMPTY=16        # Workdirectory is not empty
+readonly EX_GIT_CLONE=10        # Failed cloning Git repository
+readonly EX_INVALID_TYPE=11     # Invalid build type
+readonly EX_MULTISTAGE=12       # Dockerfile contains multiple stages
+readonly EX_NO_ARCHS=13         # No architectures to build
+readonly EX_NO_IMAGE_NAME=14    # Missing name of image to build
+readonly EX_NOT_EMPTY=15        # Workdirectory is not empty
+readonly EX_NOT_GIT=16          # This is not a Git repository
 readonly EX_PRIVILEGES=17       # Missing extended privileges
 readonly EX_SUPPORTED=18        # Requested build architecture is not supported
 readonly EX_VERSION=19          # Version not found and specified
@@ -61,7 +61,6 @@ declare DOCKER_TAG_LATEST
 declare DOCKER_TAG_TEST
 declare DOCKERFILE
 declare TRAPPED
-declare USE_GIT
 
 # Defaults values
 BUILD_ARCHS=()
@@ -75,7 +74,6 @@ DOCKER_SQUASH=true
 DOCKER_TAG_LATEST=false
 DOCKER_TAG_TEST=false
 TRAPPED=false
-USE_GIT=false
 
 # ==============================================================================
 # UTILITY
@@ -212,12 +210,9 @@ Options:
 
     -l, --tag-latest
         Tag Docker build as latest.
-        Note: This is automatically done when on latest GIT tag AND
-              using the --git flag.
 
     --tag-test
         Tag Docker build as test.
-        Note: This is automatically done when using the --git flag.
 
     -p, --push
         Upload the resulting build to Docker hub.
@@ -238,11 +233,6 @@ Options:
         Do not squash the layers of the resulting image.
 
     ------ Build meta data ------
-
-    -g, --git
-        Use GIT for version tags instead of the add-on configuration file.
-        Note: This will ONLY work when your GIT repository only contains
-              a single add-on or other Docker container!
 
     --type <type>
         The type of the thing you are building.
@@ -281,7 +271,7 @@ cleanup_on_exit() {
 }
 
 # ------------------------------------------------------------------------------
-# Clones a remote GIT repository to a local working dir
+# Clones a remote Git repository to a local working dir
 #
 # Arguments:
 #   None
@@ -289,16 +279,16 @@ cleanup_on_exit() {
 #   Exit code
 # ------------------------------------------------------------------------------
 clone_repository() {
-    display_status_message 'Cloning remote GIT repository'
+    display_status_message 'Cloning remote Git repository'
 
     [[ "$(ls -A ".")" ]] && display_error_message \
-        '/docker mount is in used already, while requesting a repository' \
+        '/docker mount is in use already, while requesting a repository' \
         "${EX_NOT_EMPTY}"
 
     git clone \
         --depth 1 --single-branch "${BUILD_REPOSITORY}" \
         -b "${BUILD_BRANCH}" "$(pwd)" \
-        || display_error_message 'Failed cloning requested GIT repository' \
+        || display_error_message 'Failed cloning requested Git repository' \
             "${EX_GIT_CLONE}"
 
     return "${EX_OK}"
@@ -671,7 +661,7 @@ get_info_dockerfile() {
 }
 
 # ------------------------------------------------------------------------------
-# Tries to fetch information from the GIT repository
+# Tries to fetch information from the Git repository
 #
 # Arguments:
 #   None
@@ -679,56 +669,19 @@ get_info_dockerfile() {
 #   Exit code
 # ------------------------------------------------------------------------------
 get_info_git() {
-    local ref
-    local tag
+    display_status_message 'Collecting information from Git'
 
-    display_status_message 'Collecting information from GIT'
-
-    # Is the GIT repository dirty?
-    if [[ -z "$(git status --porcelain)" ]]; then
-
-        tag=$(git describe --exact-match HEAD --abbrev=0 --tags 2> /dev/null \
-                || true)
-        ref=$(git rev-parse --short HEAD)
-
-        BUILD_REF="${ref}"
-
-        # Is current HEAD on a tag?
-        if [[ ! -z "${tag:-}" ]]; then
-            # Is it the latest tag?
-            if [[ "$(git describe --abbrev=0 --tags)" = "${tag}" ]]; then
-                DOCKER_TAG_LATEST=true
-            fi
-            BUILD_VERSION="${tag#v}"
-        else
-            # We are clean, but version is unknown, use commit SHA as version
-            BUILD_VERSION="${ref}"
-            DOCKER_TAG_TEST=true
-        fi
-    else
-        # Uncomitted changes on the GIT repository, dirty!
-        BUILD_REF="dirty"
-        BUILD_VERSION="dirty"
-        DOCKER_TAG_TEST=true
+    # Is this even a Git repository?
+    if ! git -C . rev-parse; then
+        display_notice_message 'This does not Git repository. Skipping.'
+        return "${EX_NOT_GIT}"
     fi
 
-    return "${EX_OK}"
-}
-
-# ------------------------------------------------------------------------------
-# Ensure this directory is actually a GIT repository
-#
-# Arguments:
-#   None
-# Returns:
-#   Exit cde
-# ------------------------------------------------------------------------------
-is_git_repository() {
-    display_status_message 'Ensuring we are dealing with a GIT repository'
-    if ! git -C . rev-parse; then
-        display_error_message \
-            'You have added --git, but is this a GIT repo?' \
-            "${EX_GIT}"
+    # Is the Git repository dirty? (Uncomitted changes in repository)
+    if [[ -z "$(git status --porcelain)" ]]; then
+        BUILD_REF=$(git rev-parse --short HEAD)
+    else
+        BUILD_REF="dirty"
     fi
 
     return "${EX_OK}"
@@ -784,9 +737,6 @@ parse_cli_arguments() {
                 ;;
             -s|--single)
                 BUILD_PARALLEL=false
-                ;;
-            -g|--git)
-                USE_GIT=true
                 ;;
             --type)
                 BUILD_TYPE=${2}
@@ -957,11 +907,7 @@ main() {
         && get_info_json "${BUILD_TARGET}/config.json"
     [[ -f "${BUILD_TARGET}/build.json" ]] \
         && get_info_json "${BUILD_TARGET}/build.json"
-
-    if [[ "${USE_GIT}" = true ]]; then
-        is_git_repository
-        get_info_git
-    fi
+    get_info_git
     get_info_dockerfile
 
     # Getting ready
