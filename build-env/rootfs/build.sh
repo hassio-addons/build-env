@@ -23,16 +23,17 @@ readonly EX_DOCKER_PUSH=6       # Failed pushing Docker image
 readonly EX_DOCKER_TAG=7        # Failed setting Docker tag
 readonly EX_DOCKER_TIMEOUT=8    # Timout starting docker
 readonly EX_DOCKERFILE=9        # Dockerfile is missing?
-readonly EX_GIT_CLONE=10        # Failed cloning GIT repository
-readonly EX_GIT=12              # Is this a GIT repository?
-readonly EX_INVALID_TYPE=12     # Invalid build type
-readonly EX_MULTISTAGE=13       # Dockerfile contains multiple stages
-readonly EX_NO_ARCHS=14         # No architectures to build
+readonly EX_GIT_CLONE=10        # Failed cloning Git repository
+readonly EX_INVALID_TYPE=11     # Invalid build type
+readonly EX_MULTISTAGE=12       # Dockerfile contains multiple stages
+readonly EX_NO_ARCHS=13         # No architectures to build
+readonly EX_NO_FROM=14          # Missing image to build from
 readonly EX_NO_IMAGE_NAME=15    # Missing name of image to build
 readonly EX_NOT_EMPTY=16        # Workdirectory is not empty
-readonly EX_PRIVILEGES=17       # Missing extended privileges
-readonly EX_SUPPORTED=18        # Requested build architecture is not supported
-readonly EX_VERSION=19          # Version not found and specified
+readonly EX_NOT_GIT=17          # This is not a Git repository
+readonly EX_PRIVILEGES=18       # Missing extended privileges
+readonly EX_SUPPORTED=19        # Requested build architecture is not supported
+readonly EX_VERSION=20          # Version not found and specified
 
 # Constants
 readonly DOCKER_PIDFILE='/var/run/docker.pid' # Docker daemon PID file
@@ -42,27 +43,17 @@ readonly DOCKER_TIMEOUT=20  # Wait 20 seconds for docker to start/exit
 declare -a BUILD_ARCHS
 declare -A BUILD_ARCHS_FROM
 declare -A BUILD_ARGS
-declare -a EXISTING_ARGS
 declare -a EXISTING_LABELS
 declare -a SUPPORTED_ARCHS
 declare -i DOCKER_PID
 declare BUILD_ALL=false
 declare BUILD_BRANCH
-declare BUILD_DESCRIPTION
-declare BUILD_DOC_URL
-declare BUILD_FROM
-declare BUILD_GIT_URL
 declare BUILD_IMAGE
-declare BUILD_LABEL_OVERRIDE
-declare BUILD_MAINTAINER
-declare BUILD_NAME
 declare BUILD_PARALLEL
 declare BUILD_REF
 declare BUILD_REPOSITORY
 declare BUILD_TARGET
 declare BUILD_TYPE
-declare BUILD_URL
-declare BUILD_VENDOR
 declare BUILD_VERSION
 declare DOCKER_CACHE
 declare DOCKER_PUSH
@@ -71,12 +62,10 @@ declare DOCKER_TAG_LATEST
 declare DOCKER_TAG_TEST
 declare DOCKERFILE
 declare TRAPPED
-declare USE_GIT
 
 # Defaults values
 BUILD_ARCHS=()
 BUILD_BRANCH='master'
-BUILD_LABEL_OVERRIDE=false
 BUILD_PARALLEL=true
 BUILD_TARGET=$(pwd)
 DOCKER_CACHE=true
@@ -86,7 +75,6 @@ DOCKER_SQUASH=true
 DOCKER_TAG_LATEST=false
 DOCKER_TAG_TEST=false
 TRAPPED=false
-USE_GIT=false
 
 # ==============================================================================
 # UTILITY
@@ -95,8 +83,6 @@ USE_GIT=false
 # ------------------------------------------------------------------------------
 # Displays a simple program header
 #
-# Globals:
-#   None
 # Arguments:
 #   None
 # Returns:
@@ -111,8 +97,6 @@ display_banner() {
 # ------------------------------------------------------------------------------
 # Displays a error message and is able to terminate te script execution
 #
-# Globals:
-#   None
 # Arguments:
 #   $1 Error message
 #   $2 Exit code, script will continue execution when omitted
@@ -135,8 +119,6 @@ display_error_message() {
 # ------------------------------------------------------------------------------
 # Displays a notice
 #
-# Globals:
-#   None
 # Arguments:
 #   $* Notice message to display
 # Returns:
@@ -153,8 +135,6 @@ display_notice_message() {
 # ------------------------------------------------------------------------------
 # Displays a status message
 #
-# Globals:
-#   None
 # Arguments:
 #   $* Status message to display
 # Returns:
@@ -169,8 +149,6 @@ display_status_message() {
 # ------------------------------------------------------------------------------
 # Displays the help of this program
 #
-# Globals:
-#   EX_OK
 # Arguments:
 #   $1 Exit code
 #   $2 Error message
@@ -202,18 +180,18 @@ Options:
         Defaults to master.
 
     ------ Build Architectures ------
-    
+
     --aarch64
-        Build for aarch64 architecture.
+        Build for aarch64 (arm 64 bits) architecture.
 
     --amd64
-        Build for amd64 architecture.
+        Build for amd64 (intel/amd 64 bits) architecture.
 
     --armhf
-        Build for armhf architecture.
+        Build for armhf (arm 32 bits) architecture.
 
     --i386
-        Build for i386 architecture.
+        Build for i386 (intel/amd 32 bits) architecture.
 
     -a, --all
         Build for all architectures.
@@ -221,34 +199,6 @@ Options:
         If a limited set of supported architectures are defined in
         a configuration file, that list is still honored when using
         this flag.
-
-    ------ Build base images ------
-
-    --aarch64-from <image>
-        Use a custom base image when building for aarch64.
-        e.g. --aarch64-image "homeassistant/aarch64-base".
-        Note: This overrides the --from flag for this architecture.
-        
-    --amd64-from <image>
-        Use a custom base image when building for amd64.
-        e.g. --amd64-image "homeassistant/amd64-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --armhf-from <image>
-        Use a custom base image when building for armhf.
-        e.g. --armhf-image "homeassistant/armhf-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --i386-from <image>
-        Use a custom base image when building for i386.
-        e.g. --i386-image "homeassistant/i386-image".
-        Note: This overrides the --from flag for this architecture.
-
-    -f, --from <image>
-        Use a custom base image when building.
-        Use '{arch}' as a placeholder for the architecture name.
-        e.g., --from "homeassistant/{arch}-base"
-        Defaults to "hassioaddons/base-{arch}"
 
     ------ Build output ------
 
@@ -261,12 +211,9 @@ Options:
 
     -l, --tag-latest
         Tag Docker build as latest.
-        Note: This is automatically done when on latest GIT tag AND
-              using the --git flag.
 
     --tag-test
         Tag Docker build as test.
-        Note: This is automatically done when using the --git flag.
 
     -p, --push
         Upload the resulting build to Docker hub.
@@ -275,6 +222,7 @@ Options:
 
     --arg <key> <value>
         Pass additional build arguments into the Docker build.
+        This option can be repeated for multiple key/value pairs.
 
     -c, --no-cache
         Disable build from cache.
@@ -287,54 +235,11 @@ Options:
 
     ------ Build meta data ------
 
-    -g, --git
-        Use GIT for version tags instead of the add-on configuration file.
-        Note: This will ONLY work when your GIT repository only contains
-              a single add-on or other Docker container!
-
     --type <type>
         The type of the thing you are building.
         Valid values are: addon, base, cluster, homeassistant and supervisor.
         If you are unsure, then you probably don't need this flag.
-        Defaults to 'addon'.
-
-    -n, --name <name>
-        Name or title of the thing that is being built.
-        Note: When building add-ons; this will override the setting from
-              the configuration file.
-        
-    -d, --description <description>
-        Description of the thing that is being built.
-        Note: When building add-ons; this will override the setting from
-              the configuration file.
-
-    --vendor <vendor>
-        The name of the vendor providing the thing that is being built.
-
-    -m, --maintainer, --author <author>
-        Name of the maintainer. MUST be in "My Name <email@example.com>" format.
-        e.g., "Franck Nijhof <frenck@addons.community>"
-        Note: When building add-ons; this will override the setting from
-              the configuration file.
-
-    -u, --url <ur>
-        URL to the homepage of the thing that is built.
-        Note: When building add-ons; this will override the setting from
-              the configuration file.
-
-    -c, --doc-url <url>
-        URL to the documentation of the thing that is built.
-        When omitted, the value of --url will be used.
-
-    --git-url <url>
-        The URL to the GIT repository (e.g., GitHub).
-        When omitted, the value of --url will be used or is detected using git.
-
-    -o, --override
-        Always override Docker labels.
-        The normal behavior of the builder is to only add a label when it is
-        not found in the Dockerfile. This flag enforces to override all label
-        values.
+        Defaults to auto detect, with failover to 'addon'.
 
 EOF
 
@@ -348,9 +253,6 @@ EOF
 # ------------------------------------------------------------------------------
 # Cleanup function after execution is of the script is stopped. (trap)
 #
-# Globals:
-#   EX_OK
-#   TRAPPED
 # Arguments:
 #   $1 Exit code
 # Returns:
@@ -370,30 +272,24 @@ cleanup_on_exit() {
 }
 
 # ------------------------------------------------------------------------------
-# Clones a remote GIT repository to a local working dir
+# Clones a remote Git repository to a local working dir
 #
-# Globals:
-#   BUILD_BRANCH
-#   BUILD_REPOSITORY
-#   EX_GIT_CLONE
-#   EX_NOT_EMPTY
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
 #   Exit code
 # ------------------------------------------------------------------------------
 clone_repository() {
-    display_status_message 'Cloning remote GIT repository'
+    display_status_message 'Cloning remote Git repository'
 
     [[ "$(ls -A ".")" ]] && display_error_message \
-        '/docker mount is in used already, while requesting a repository' \
+        '/docker mount is in use already, while requesting a repository' \
         "${EX_NOT_EMPTY}"
 
     git clone \
         --depth 1 --single-branch "${BUILD_REPOSITORY}" \
         -b "${BUILD_BRANCH}" "$(pwd)" \
-        || display_error_message 'Failed cloning requested GIT repository' \
+        || display_error_message 'Failed cloning requested Git repository' \
             "${EX_GIT_CLONE}"
 
     return "${EX_OK}"
@@ -402,28 +298,6 @@ clone_repository() {
 # ------------------------------------------------------------------------------
 # Start the Docker build
 #
-# Globals:
-#   BUILD_ARCHS_FROM
-#   BUILD_ARGS
-#   BUILD_DESCRIPTION
-#   BUILD_DOC_URL
-#   BUILD_FROM
-#   BUILD_GIT_URL
-#   BUILD_IMAGE
-#   BUILD_MAINTAINER
-#   BUILD_NAME
-#   BUILD_REF
-#   BUILD_TARGET
-#   BUILD_TYPE
-#   BUILD_URL
-#   BUILD_VENDOR
-#   BUILD_VERSION
-#   DOCKER_CACHE
-#   DOCKER_SQUASH
-#   DOCKERFILE
-#   EX_DOCKER_BUILD
-#   EX_OK
-#   EXISTING_ARGS
 # Arguments:
 #   $1 Architecture to build
 # Returns:
@@ -434,7 +308,6 @@ docker_build() {
     local arch=${1}
     local build_date
     local dockerfile
-    local from
     local image
 
     display_status_message 'Running Docker build'
@@ -445,48 +318,21 @@ docker_build() {
 
     build_args+=(--pull)
     build_args+=(--compress)
-    [[ "${DOCKER_SQUASH}" = true ]] && build_args+=(--squash)
-
-    if [[ "${BUILD_ARCHS_FROM[${arch}]}" ]]; then
-        build_args+=(--build-arg "BUILD_FROM=${BUILD_ARCHS_FROM[${arch}]}")
-    else
-        from="${BUILD_FROM//\{arch\}/${arch}}"
-        build_args+=(--build-arg "BUILD_FROM=${from}")
-    fi  
-
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_DESCRIPTION"* ]] && \
-        build_args+=(--build-arg "BUILD_DESCRIPTION=${BUILD_DESCRIPTION}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_GIT_URL"* ]] && \
-        build_args+=(--build-arg "BUILD_GIT_URL=${BUILD_GIT_URL}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_MAINTAINER"* ]] && \
-        build_args+=(--build-arg "BUILD_MAINTAINER=${BUILD_MAINTAINER}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_NAME"* ]] && \
-        build_args+=(--build-arg "BUILD_NAME=${BUILD_NAME}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_REF"* ]] && \
-        build_args+=(--build-arg "BUILD_REF=${BUILD_REF}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_TYPE"* ]] && \
-        build_args+=(--build-arg "BUILD_TYPE=${BUILD_TYPE}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_URL"* ]] && \
-        build_args+=(--build-arg "BUILD_URL=${BUILD_URL}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_DOC_URL"* ]] && \
-        build_args+=(--build-arg "BUILD_DOC_URL=${BUILD_DOC_URL}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_VENDOR"* ]] && \
-        build_args+=(--build-arg "BUILD_VENDOR=${BUILD_VENDOR}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_VERSION"* ]] && \
-        build_args+=(--build-arg "BUILD_VERSION=${BUILD_VERSION}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_ARCH"* ]] && \
-        build_args+=(--build-arg "BUILD_ARCH=${arch}")
-    [[ "${EXISTING_ARGS[*]}" = *"BUILD_DATE"* ]] && \
-        build_args+=(--build-arg "BUILD_DATE=${build_date}")
+    build_args+=(--tag "${image}:${BUILD_VERSION}")
+    build_args+=(--build-arg "BUILD_FROM=${BUILD_ARCHS_FROM[${arch}]}")
+    build_args+=(--build-arg "BUILD_REF=${BUILD_REF}")
+    build_args+=(--build-arg "BUILD_TYPE=${BUILD_TYPE}")
+    build_args+=(--build-arg "BUILD_ARCH=${arch}")
+    build_args+=(--build-arg "BUILD_DATE=${build_date}")
 
     for arg in "${!BUILD_ARGS[@]}"; do
         build_args+=(--build-arg "${arg}=${BUILD_ARGS[$arg]}")
     done
-
-    build_args+=(--tag "${image}:${BUILD_VERSION}")
+    
+    [[ "${DOCKER_SQUASH}" = true ]] && build_args+=(--squash)
 
     if [[ "${DOCKER_CACHE}" = true ]]; then
-        build_args+=(--cache-from "${BUILD_IMAGE}:latest")
+        build_args+=(--cache-from "${image}:latest")
     else
         build_args+=(--no-cache)
     fi
@@ -506,9 +352,6 @@ docker_build() {
 # ------------------------------------------------------------------------------
 # Disables Docker's cross compiler features (qemu)
 #
-# Globals:
-#   EX_CROSS
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -534,9 +377,6 @@ docker_disable_crosscompile() {
 # ------------------------------------------------------------------------------
 # Enables Docker's cross compiler features (qemu)
 #
-# Globals:
-#   EX_CROSS
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -557,13 +397,6 @@ docker_enable_crosscompile() {
 # ------------------------------------------------------------------------------
 # Push Docker build result to DockerHub
 #
-# Globals:
-#   BUILD_IMAGE
-#   BUILD_VERSION
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_DOCKER_PUSH
-#   EX_OK
 # Arguments:
 #   $1 Architecture
 # Returns:
@@ -604,11 +437,6 @@ docker_push() {
 # ------------------------------------------------------------------------------
 # Starts the Docker daemon
 #
-# Globals:
-#   DOCKER_PID
-#   DOCKER_TIMEOUT
-#   EX_DOCKER_TIMEOUT
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -645,11 +473,6 @@ docker_start_daemon() {
 # ------------------------------------------------------------------------------
 # Stops Docker daemon
 #
-# Globals:
-#   DOCKER_PID
-#   DOCKER_TIMEOUT
-#   EX_DOCKER_TIMEOUT
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -690,13 +513,6 @@ docker_stop_daemon() {
 # ------------------------------------------------------------------------------
 # Places 'latest'/'test' tag(s) onto the current build result
 #
-# Globals:
-#   BUILD_IMAGE
-#   BUILD_VERSION
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_DOCKER_TAG
-#   EX_OK
 # Arguments:
 #   $1 Architecture
 # Returns:
@@ -728,10 +544,6 @@ docker_tag() {
 # ------------------------------------------------------------------------------
 # Try to pull latest version of the current image to use as cache
 #
-# Globals:
-#   BUILD_IMAGE
-#   DOCKER_CACHE
-#   EX_OK
 # Arguments:
 #   $1 Architecture
 # Returns:
@@ -753,148 +565,58 @@ docker_warmup_cache() {
 }
 
 # ------------------------------------------------------------------------------
-# Tries to fetch information from the add-on configuration file
+# Tries to fetch information from the add-on config file.
 #
-# Globals:
-#   BUILD_DESCRIPTION
-#   BUILD_DOC_URL
-#   BUILD_GIT_URL
-#   BUILD_IMAGE
-#   BUILD_MAINTAINER
-#   BUILD_NAME
-#   BUILD_TARGET
-#   BUILD_URL
-#   BUILD_VENDOR
-#   BUILD_VERSION
-#   EX_OK
-#   SUPPORTED_ARCHS
 # Arguments:
-#   None
+#   $1 JSON file to parse
 # Returns:
 #   Exit code
 # ------------------------------------------------------------------------------
-get_info_config() {
-    local archs
-    local jsonfile
-
-    if [[ -f "${BUILD_TARGET}/config.json" ]]; then
-        jsonfile="${BUILD_TARGET}/config.json"
-
-        display_status_message "Loading information from ${jsonfile}"
-
-        # Read native supported configuration values
-        [[ -z "${BUILD_NAME:-}" ]] \
-            && BUILD_NAME=$(jq -r '.name // empty' "${jsonfile}")
-
-        [[ -z "${BUILD_VERSION:-}" ]] \
-            && BUILD_VERSION=$(jq -r '.version' "${jsonfile}")
-
-        [[ -z "${BUILD_DESCRIPTION:-}" ]] \
-            && BUILD_DESCRIPTION=$(jq -r '.description // empty' "${jsonfile}")
-
-        [[ -z "${BUILD_URL:-}" ]] \
-            && BUILD_URL=$(jq -r '.url // empty' "${jsonfile}")
-
-        [[ -z "${BUILD_IMAGE:-}" ]] \
-            && BUILD_IMAGE=$(jq -r '.image // empty' "${jsonfile}")
-
-        IFS=
-        archs=$(jq -r '.arch // empty | .[]' "${jsonfile}")
-        while read -r arch; do
-            SUPPORTED_ARCHS+=("${arch}")
-        done <<< "${archs}"
-
-        # Read additional configuration values, not official supported by
-        # Home Assistant at this point.
-        [[ -z "${BUILD_VENDOR:-}" ]] \
-            && BUILD_VENDOR=$(jq -r '.vendor // empty' "${jsonfile}")
-
-        [[ -z "${BUILD_MAINTAINER:-}" ]] \
-            && BUILD_MAINTAINER=$(jq -r '.maintainer // empty' "${jsonfile}")
-
-        [[ -z "${BUILD_DOC_URL:-}" ]] \
-            && BUILD_DOC_URL=$(jq -r '.documentation // empty' "${jsonfile}")
-
-        [[ -z "${BUILD_GIT_URL:-}" ]] \
-            && BUILD_GIT_URL=$(jq -r '.source // empty' "${jsonfile}")
-                
-    else
-        display_notice_message \
-            'Skipped loading information, file not found'
-    fi
-
-    return "${EX_OK}"
-}
-
-# ------------------------------------------------------------------------------
-# Tries to fetch information from the add-on build configuration file
-#
-# Globals:
-#   BUILD_ARCHS_FROM
-#   BUILD_ARGS
-#   BUILD_FROM
-#   BUILD_IMAGE
-#   BUILD_TARGET
-#   BUILD_TYPE
-#   DOCKER_SQUASH
-#   EX_OK
-# Arguments:
-#   None
-# Returns:
-#   Exit code
-# ------------------------------------------------------------------------------
-get_info_build() {
+get_info_json() {
     local archs
     local args
-    local jsonfile
+    local jsonfile=$1
     local squash
 
-    if [[ -f "${BUILD_TARGET}/build.json" ]]; then
-        jsonfile="${BUILD_TARGET}/build.json"
+    display_status_message "Loading information from ${jsonfile}"
 
-        display_status_message "Loading information from ${jsonfile}"
+    [[ -z "${BUILD_VERSION:-}" ]] \
+        && BUILD_VERSION=$(jq -r '.version' "${jsonfile}")
 
-        # Read native supported configuration values
-        IFS=
-        archs=$(jq -r '.build_from // empty | keys[]' "${jsonfile}")
-        while read -r arch; do
-            if [[ ! -z "${arch}"
-                && -z "${BUILD_ARCHS_FROM["${arch}"]:-}"
-            ]]; then
-                BUILD_ARCHS_FROM[${arch}]=$(jq -r \
-                    ".build_from | .${arch}" "${jsonfile}")
-            fi
-        done <<< "${archs}"
-        
-        squash=$(jq -r '.squash // empty' "${jsonfile}")
-        [[ "${squash}" = "true" ]] && DOCKER_SQUASH=true
-        [[ "${squash}" = "false" ]] && DOCKER_SQUASH=false
+    [[ -z "${BUILD_IMAGE:-}" ]] \
+        && BUILD_IMAGE=$(jq -r '.image // empty' "${jsonfile}")
 
-        IFS=
-        args=$(jq -r '.args // empty | keys[]' "${jsonfile}")
-        while read -r arg; do
-            if [[ ! -z "${arg}"
-                && -z "${BUILD_ARGS["${arch}"]:-}"
-            ]]; then
-                BUILD_ARGS[${arg}]=$(jq -r \
-                    ".args | .${arg}" "${jsonfile}")
-            fi
-        done <<< "${args}"        
-        
-        # Read additional configuration values, not official supported by
-        # Home Assistant at this point.
-        [[ -z "${BUILD_FROM:-}" ]] \
-            && BUILD_FROM=$(jq -r '.from // empty' "${jsonfile}")
+    IFS=
+    archs=$(jq -r '.arch // empty | .[]' "${jsonfile}")
+    while read -r arch; do
+        SUPPORTED_ARCHS+=("${arch}")
+    done <<< "${archs}"
 
-        [[ -z "${BUILD_TYPE:-}" ]] \
-            && BUILD_TYPE=$(jq -r '.type // empty' "${jsonfile}")
+    IFS=
+    archs=$(jq -r '.build_from // empty | keys[]' "${jsonfile}")
+    while read -r arch; do
+        if [[ ! -z "${arch}"
+            && -z "${BUILD_ARCHS_FROM["${arch}"]:-}"
+        ]]; then
+            BUILD_ARCHS_FROM[${arch}]=$(jq -r \
+                ".build_from | .${arch}" "${jsonfile}")
+        fi
+    done <<< "${archs}"
+    
+    squash=$(jq -r '.squash // empty' "${jsonfile}")
+    [[ "${squash}" = "true" ]] && DOCKER_SQUASH=true
+    [[ "${squash}" = "false" ]] && DOCKER_SQUASH=false
 
-        [[ -z "${BUILD_IMAGE:-}" ]] \
-            && BUILD_IMAGE=$(jq -r '.image // empty' "${jsonfile}")
-    else
-        display_notice_message \
-            'Skipped loading information, file not found'
-    fi
+    IFS=
+    args=$(jq -r '.args // empty | keys[]' "${jsonfile}")
+    while read -r arg; do
+        if [[ ! -z "${arg}"
+            && -z "${BUILD_ARGS["${arch}"]:-}"
+        ]]; then
+            BUILD_ARGS[${arg}]=$(jq -r \
+                ".args | .${arg}" "${jsonfile}")
+        fi
+    done <<< "${args}"        
 
     return "${EX_OK}"
 }
@@ -902,31 +624,12 @@ get_info_build() {
 # ------------------------------------------------------------------------------
 # Tries to fetch information from existing Dockerfile
 #
-# Globals:
-#   BUILD_ARCHS_FROM
-#   BUILD_DESCRIPTION
-#   BUILD_DOC_URL
-#   BUILD_FROM
-#   BUILD_GIT_URL
-#   BUILD_MAINTAINER
-#   BUILD_MAINTAINER
-#   BUILD_NAME
-#   BUILD_TARGET
-#   BUILD_TYPE
-#   BUILD_URL
-#   BUILD_VENDOR
-#   DOCKERFILE
-#   EX_OK
-#   EXISTING_ARGS
-#   EXISTING_LABELS
 # Arguments:
 #   None
 # Returns:
 #   Exit code
 # ------------------------------------------------------------------------------
 get_info_dockerfile() {
-    local from
-    local args
     local labels
     local json
 
@@ -934,68 +637,6 @@ get_info_dockerfile() {
 
     DOCKERFILE=$(<"${BUILD_TARGET}/Dockerfile")
     json=$(dockerfile2json "${BUILD_TARGET}/Dockerfile")
-
-    if [[ 
-        ! -z $(jq -r '.[] | select(.cmd=="arg") // empty' <<< "${json}") 
-    ]]; then
-        args=$(jq -r '.[] | select(.cmd=="arg") | .value | .[]' \
-            <<< "${json}")
-
-        IFS=
-        while read -r arg; do
-            if [[ "${arg}" = *'='* ]]; then
-                value="${arg#*=}"
-                value="${value%\"}"
-                value="${value#\"}"
-                arg="${arg%%=*}"
-            else
-                value=''
-            fi
-            EXISTING_ARGS+=("${arg}")
-
-            if [[ ! -z "$value" ]]; then
-                case $arg in
-                    BUILD_FROM)
-                        [[ -z "${BUILD_FROM:-}" ]] && BUILD_FROM="${value}"
-                        ;;
-                    BUILD_NAME)
-                        [[ -z "${BUILD_NAME:-}" ]] && BUILD_NAME="${value}"
-                        ;;
-                    BUILD_DESCRIPTION)
-                        [[ -z "${BUILD_DESCRIPTION:-}" ]] \
-                            && BUILD_DESCRIPTION="${value}"
-                        ;;
-                    BUILD_URL)
-                        [[ -z "${BUILD_URL:-}" ]] && BUILD_URL="${value}"
-                        ;;
-                    BUILD_GIT_URL)
-                        [[ -z "${BUILD_GIT_URL:-}" ]] \
-                            && BUILD_GIT_URL="${value}"
-                        ;;
-                    BUILD_VENDOR)
-                        [[ -z "${BUILD_VENDOR:-}" ]] && BUILD_VENDOR="${value}"
-                        ;;
-                    BUILD_DOC_URL)
-                        [[ -z "${BUILD_DOC_URL:-}" ]] \
-                            && BUILD_DOC_URL="${value}"
-                        ;;
-                    BUILD_MAINTAINER)
-                        [[ -z "${BUILD_MAINTAINER:-}" ]] \
-                            && BUILD_MAINTAINER="${value}"
-                        ;;
-                    BUILD_TYPE)
-                        [[ -z "${BUILD_TYPE:-}" ]] && BUILD_TYPE="${value}"
-                        ;;
-                esac
-            fi
-        done <<< "${args}"
-    fi
-
-    if [[ -z "${BUILD_MAINTAINER:-}" ]]; then
-        BUILD_MAINTAINER=$(jq \
-            -r '.[] | select(.cmd=="maintainer") | .value[0]' \
-            <<< "${json}")
-    fi    
 
     if [[ 
         ! -z $(jq -r '.[] | select(.cmd=="label") // empty' <<< "${json}")
@@ -1010,29 +651,6 @@ get_info_dockerfile() {
             EXISTING_LABELS+=("${label}")
 
             case ${label} in
-                org.label-schema.name)
-                    [[ -z "${BUILD_NAME:-}" ]] && BUILD_NAME="${value}"
-                    ;;
-                org.label-schema.description)
-                    [[ -z "${BUILD_DESCRIPTION:-}" ]] \
-                        && BUILD_DESCRIPTION="${value}"
-                    ;;
-                org.label-schema.url)
-                    [[ -z "${BUILD_URL:-}" ]] && BUILD_URL="${value}"
-                    ;;
-                org.label-schema.vcs-url)
-                    [[ -z "${BUILD_GIT_URL:-}" ]] && BUILD_GIT_URL="${value}"
-                    ;;
-                org.label-schema.vendor)
-                    [[ -z "${BUILD_VENDOR:-}" ]] && BUILD_VENDOR="${value}"
-                    ;;
-                org.label-schema.usage)
-                    [[ -z "${BUILD_DOC_URL:-}" ]] && BUILD_DOC_URL="${value}"
-                    ;;
-                maintainer)
-                    [[ -z "${BUILD_MAINTAINER:-}" ]] \
-                        && BUILD_MAINTAINER="${value}"
-                    ;;
                 io.hass.type)
                     [[ -z "${BUILD_TYPE:-}" ]] && BUILD_TYPE="${value}"
                     ;;
@@ -1040,132 +658,31 @@ get_info_dockerfile() {
         done <<< "${labels}"
     fi
 
-    if [[ -z "${BUILD_FROM:-}" ]]; then
-         from=$(jq -r '.[] | select(.cmd=="from") | .value[0]' \
-                <<< "${json}")
-
-        if [[ ${from} = *"%%ARCH%%"* ]]; then
-            from="${from//%%ARCH%%/\{ARCH\}}"
-        fi
-
-        if [[ ${from} = *"{arch}"* ]]; then
-            BUILD_FROM=${from}
-        fi
-    fi
-
-    if [[ -z "${BUILD_ARCHS_FROM['aarch64']:-}" ]]; then
-        BUILD_ARCHS_FROM['aarch64']=$(sed -Ene's#\#aarch64:FROM (.*)#\1#pg' \
-            <<<"${DOCKERFILE}")
-    fi
-
-    if [[ -z "${BUILD_ARCHS_FROM['amd64']:-}" ]]; then
-        BUILD_ARCHS_FROM['amd64']=$(sed -Ene's#\#amd64:FROM (.*)#\1#pg' \
-            <<<"${DOCKERFILE}")
-    fi
-    if [[ -z "${BUILD_ARCHS_FROM['armhf']:-}" ]]; then
-        BUILD_ARCHS_FROM['armhf']=$(sed -Ene's#\#armhf:FROM (.*)#\1#pg' \
-            <<<"${DOCKERFILE}")
-    fi
-
-    if [[ -z "${BUILD_ARCHS_FROM['i386']:-}" ]]; then
-        BUILD_ARCHS_FROM['i386']=$(sed -Ene's#\#i386:FROM (.*)#\1#pg' \
-            <<<"${DOCKERFILE}")
-    fi
-
     return "${EX_OK}"
 }
 
 # ------------------------------------------------------------------------------
-# Tries to fetch information from the GIT repository
+# Tries to fetch information from the Git repository
 #
-# Globals:
-#   BUILD_GIT_URL
-#   BUILD_REF
-#   BUILD_URL
-#   BUILD_VERSION
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
 #   Exit code
 # ------------------------------------------------------------------------------
 get_info_git() {
-    local ref
-    local repo
-    local tag
-    local url
-    local user
+    display_status_message 'Collecting information from Git'
 
-    display_status_message 'Collecting information from GIT'
-
-    # Is the GIT repository dirty?
-    if [[ -z "$(git status --porcelain)" ]]; then
-
-        tag=$(git describe --exact-match HEAD --abbrev=0 --tags 2> /dev/null \
-                || true)
-        ref=$(git rev-parse --short HEAD)
-
-        BUILD_REF="${ref}"
-
-        # Is current HEAD on a tag?
-        if [[ ! -z "${tag:-}" ]]; then
-            # Is it the latest tag?
-            if [[ "$(git describe --abbrev=0 --tags)" = "${tag}" ]]; then
-                DOCKER_TAG_LATEST=true
-            fi
-            BUILD_VERSION="${tag#v}"
-        else
-            # We are clean, but version is unknown, use commit SHA as version
-            BUILD_VERSION="${ref}"
-            DOCKER_TAG_TEST=true
-        fi
-    else
-        # Uncomitted changes on the GIT repository, dirty!
-        BUILD_REF="dirty"
-        BUILD_VERSION="dirty"
-        DOCKER_TAG_TEST=true
-    fi
-
-    # Try to determine source URL from GIT repository
-    if [[ -z "${BUILD_GIT_URL:-}" ]]; then
-        url=$(git config --get remote.origin.url)
-        if [[ "${url}" =~ ^http ]]; then
-            BUILD_GIT_URL="${url}"
-        elif [[ "${url}" =~ ^git@github.com ]]; then
-            user=$(sed -Ene's#git@github.com:([^/]*)/(.*).git#\1#p' \
-                <<<"${url}")
-            repo=$(sed -Ene's#git@github.com:([^/]*)/(.*).git#\2#p' \
-                <<<"${url}")
-            BUILD_GIT_URL="https://github.com/${user}/${repo}"
-        fi
-
-        if [[ ! -z "${BUILD_GIT_URL:-}" ]] && [[ -z "${BUILD_URL:-}" ]]; then
-            BUILD_URL="${BUILD_GIT_URL}"
-        fi
-    fi
-
-    return "${EX_OK}"
-}
-
-# ------------------------------------------------------------------------------
-# Ensure this directory is actually a GIT repository
-#
-# Globals:
-#   EX_GIT
-#   EX_OK
-# Arguments:
-#   None
-# Returns:
-#   Exit cde
-# ------------------------------------------------------------------------------
-is_git_repository() {
-    display_status_message 'Ensuring we are dealing with a GIT repository'
+    # Is this even a Git repository?
     if ! git -C . rev-parse; then
-        display_error_message \
-            'You have added --git, but is this a GIT repo?' \
-            "${EX_GIT}"
+        display_notice_message 'This does not Git repository. Skipping.'
+        return "${EX_NOT_GIT}"
+    fi
+
+    # Is the Git repository dirty? (Uncomitted changes in repository)
+    if [[ -z "$(git status --porcelain)" ]]; then
+        BUILD_REF=$(git rev-parse --short HEAD)
+    else
+        BUILD_REF="dirty"
     fi
 
     return "${EX_OK}"
@@ -1174,34 +691,6 @@ is_git_repository() {
 # ------------------------------------------------------------------------------
 # Parse CLI arguments
 #
-# Globals:
-#   BUILD_ALL
-#   BUILD_ARCHS
-#   BUILD_ARCHS_FROM
-#   BUILD_ARGS
-#   BUILD_BRANCH
-#   BUILD_DESCRIPTION
-#   BUILD_DOC_URL
-#   BUILD_FROM
-#   BUILD_GIT_URL
-#   BUILD_IMAGE
-#   BUILD_LABEL_OVERRIDE
-#   BUILD_MAINTAINER
-#   BUILD_NAME
-#   BUILD_PARALLEL
-#   BUILD_REPOSITORY
-#   BUILD_TARGET
-#   BUILD_TYPE
-#   BUILD_URL
-#   BUILD_VENDOR
-#   BUILD_VERSION
-#   DOCKER_CACHE
-#   DOCKER_PUSH
-#   DOCKER_SQUASH
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_UNKNOWN
-#   USE_GIT
 # Arguments:
 #   None
 # Returns:
@@ -1228,26 +717,6 @@ parse_cli_arguments() {
             --all)
                 BUILD_ALL=true
                 ;;
-            --aarch64-from)
-                BUILD_ARCHS_FROM['aarch64']=${2}
-                shift
-                ;;
-            --amd64-from)
-                BUILD_ARCHS_FROM['amd64']=${2}
-                shift
-                ;;
-            --armhf-from)
-                BUILD_ARCHS_FROM['armhf']=${2}
-                shift
-                ;;
-            --i386-from)
-                BUILD_ARCHS_FROM['i386']=${2}
-                shift
-                ;;
-            -f|--from)
-                BUILD_FROM=${2}
-                shift
-                ;;
             -i|--image)
                 BUILD_IMAGE=${2}
                 shift
@@ -1270,43 +739,9 @@ parse_cli_arguments() {
             -s|--single)
                 BUILD_PARALLEL=false
                 ;;
-            -g|--git)
-                USE_GIT=true
-                ;;
             --type)
                 BUILD_TYPE=${2}
                 shift
-                ;;
-            -n|--name)
-                BUILD_NAME=${2}
-                shift
-                ;;
-            -d|--description)
-                BUILD_DESCRIPTION=${2}
-                shift
-                ;;
-            --vendor)
-                BUILD_VENDOR=${2}
-                shift
-                ;;
-            -m|--maintainer|--author)
-                BUILD_MAINTAINER=${2}
-                shift
-                ;;
-            -u|--url)
-                BUILD_URL=${2}
-                shift
-                ;;
-            -c|--doc-url)
-                BUILD_DOC_URL=${2}
-                shift
-                ;;
-            --git-url)
-                BUILD_GIT_URL=${2}
-                shift
-                ;;
-            -o|--override)
-                BUILD_LABEL_OVERRIDE=true
                 ;;
             -t|--target)
                 BUILD_TARGET=${2}
@@ -1340,26 +775,6 @@ parse_cli_arguments() {
 # ------------------------------------------------------------------------------
 # Ensures we have all the information we need to continue building
 #
-# Globals:
-#   BUILD_ALL
-#   BUILD_ARCHS
-#   BUILD_DESCRIPTION
-#   BUILD_DOC_URL
-#   BUILD_IMAGE
-#   BUILD_MAINTAINER
-#   BUILD_NAME
-#   BUILD_TYPE
-#   BUILD_URL
-#   BUILD_VENDOR
-#   BUILD_VERSION
-#   EX_INVALID_TYPE
-#   EX_MULTISTAGE
-#   EX_NO_ARCHS
-#   EX_OK
-#   EX_PRIVILEGES
-#   EX_SUPPORTED
-#   EX_VERSION
-#   SUPPORTED_ARCHS
 # Arguments:
 #   None
 # Returns:
@@ -1396,11 +811,17 @@ preflight_checks() {
         done
     fi
 
+    for arch in "${SUPPORTED_ARCHS[@]}"; do
+        [[ ! -z $arch && -z "${BUILD_ARCHS_FROM[${arch}]:-}" ]] \
+            && display_error_message \
+                "Architucure ${arch}, is missing a image to build from" \
+                "${EX_NO_FROM}"
+    done
+
     [[ $(awk '/^FROM/{a++}END{print a}' <<< "${DOCKERFILE}") -le 1 ]] || \
         display_error_message 'The Dockerfile seems to be multistage!' \
         "${EX_MULTISTAGE}"
 
-    # Notices
     [[ -z "${BUILD_IMAGE:-}" ]] \
         && display_help "${EX_NO_IMAGE_NAME}" 'Missing build image name'
 
@@ -1408,16 +829,6 @@ preflight_checks() {
         "${BUILD_TYPE:-}" =~ ^(|addon|base|cluster|homeassistant|supervisor)$
     ]] || \
         display_help "$EX_INVALID_TYPE" "${BUILD_TYPE:-} is not a valid type."
-
-    [[ -z "${BUILD_NAME:-}" ]] && display_notice_message 'Name not set!'
-    [[ -z "${BUILD_DESCRIPTION:-}" ]] \
-        && display_notice_message 'Description is not set!'
-    [[ -z "${BUILD_VENDOR:-}" ]] && display_notice_message 'Vendor not set!'
-    [[ -z "${BUILD_MAINTAINER:-}" ]] \
-        && display_notice_message 'Maintainer information is not set!'
-    [[ -z "${BUILD_URL:-}" ]] && display_notice_message 'URL is not set!'
-    [[ -z "${BUILD_DOC_URL:-}" ]] \
-        && display_notice_message 'Documentation url is not set!'
     
     return "${EX_OK}"
 }
@@ -1425,16 +836,6 @@ preflight_checks() {
 # ------------------------------------------------------------------------------
 # Prepares all variables for building use
 #
-# Globals:
-#   BUILD_ALL
-#   BUILD_DOC_URL
-#   BUILD_FROM
-#   BUILD_GIT_URL
-#   BUILD_REF
-#   BUILD_TYPE
-#   BUILD_URL
-#   EX_OK
-#   SUPPORTED_ARCHS
 # Arguments:
 #   None
 # Returns:
@@ -1454,18 +855,6 @@ prepare_defaults() {
 
     [[ -z "${BUILD_REF:-}" ]] && BUILD_REF='Unknown'
     [[ -z "${BUILD_TYPE:-}" ]] && BUILD_TYPE='addon'
-    [[ -z "${BUILD_FROM:-}" ]] && BUILD_FROM='hassioaddons/base-{arch}'
-    [[ -z "${BUILD_URL:-}" && ! -z "${BUILD_REPOSITORY:-}" ]] \
-        && BUILD_URL="${BUILD_REPOSITORY}"
-    [[ -z "${BUILD_URL:-}" ]] && BUILD_URL=""
-    [[ -z "${BUILD_GIT_URL:-}" ]] && BUILD_GIT_URL="${BUILD_URL}"
-    [[ -z "${BUILD_DOC_URL:-}" ]] && BUILD_DOC_URL="${BUILD_URL}"
-    [[ -z "${BUILD_NAME:-}" ]] && BUILD_NAME="Unknown"
-    [[ -z "${BUILD_DESCRIPTION:-}" ]] \
-        && BUILD_DESCRIPTION="No description provided"
-    [[ -z "${BUILD_VENDOR:-}" ]] && BUILD_VENDOR="Unknown"
-    [[ -z "${BUILD_MAINTAINER:-}" ]] \
-        && BUILD_MAINTAINER="Unknown"
 
     return "${EX_OK}"
 }
@@ -1475,187 +864,27 @@ prepare_defaults() {
 #
 # This is mainly to maintain some form of backwards compatibility
 #
-# Globals:
-#   BUILD_LABEL_OVERRIDE
-#   BUILD_LABEL_OVERRIDE
-#   DOCKERFILE
-#   EX_OK
-#   EXISTING_ARGS
-#   EXISTING_LABELS
 # Arguments:
 #   None
 # Returns:
 #   Exit code
 # ------------------------------------------------------------------------------
 prepare_dockerfile() {
-    local inject_from
     local -a labels
 
     display_status_message 'Preparing Dockerfile for use'
 
-    inject_from=false
-
-    DOCKERFILE="${DOCKERFILE//%%ARCH%%/\{arch\}}"
-
-    if grep -q "FROM %%BASE_IMAGE%%" <<< "${DOCKERFILE}"; then
-        DOCKERFILE=$(grep -v "FROM %%BASE_IMAGE%%" <<< "${DOCKERFILE}")
-        inject_from=true
-    fi
-
-    if grep -qE "^#(aarch64|amd64|armhf|i386):FROM .*$" <<< "${DOCKERFILE}"; then
-        DOCKERFILE=$(grep -vE "^#(aarch64|amd64|armhf|i386):FROM .*$" \
-                        <<< "${DOCKERFILE}")
-        inject_from=true
-    fi
-
-    if [[ "${inject_from}" = true ]]; then
-        DOCKERFILE=$(sed "1 i\ARG BUILD_FROM" <<< "${DOCKERFILE}")
-        DOCKERFILE=$(sed "2 i\FROM \$BUILD_FROM" <<< "${DOCKERFILE}")
-        EXISTING_ARGS+=(BUILD_FROM)
-    fi
-
     # Ensure Dockerfile ends with a empty line
     DOCKERFILE+=$'\n'
 
-    # Process labels
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.schema-version"*
-    ]]; then
-        labels+=("org.label-schema.schema-version=\"1.0\"")
-    fi
+    [[ ! "${EXISTING_LABELS[*]:-}" = *"io.hass.type"* ]] \
+        && labels+=("io.hass.type=${BUILD_TYPE}")
+    [[ ! "${EXISTING_LABELS[*]:-}" = *"io.hass.version"* ]] \
+        && labels+=("io.hass.version=${BUILD_VERSION}")
+    [[ ! "${EXISTING_LABELS[*]:-}" = *"io.hass.arch"* ]] \
+        && labels+=("io.hass.arch=${BUILD_ARCH}")
 
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.build-date"* 
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_DATE"* ]]; then
-            DOCKERFILE+="ARG BUILD_DATE"$'\n'
-            EXISTING_ARGS+=(BUILD_DATE)
-        fi
-        labels+=("org.label-schema.build-date=\${BUILD_DATE}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.name"* 
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_NAME"* ]]; then
-            DOCKERFILE+="ARG BUILD_NAME"$'\n'
-            EXISTING_ARGS+=(BUILD_NAME)
-        fi
-        labels+=("org.label-schema.name=\${BUILD_NAME}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.description"* 
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_DESCRIPTION"* ]]; then
-            DOCKERFILE+="ARG BUILD_DESCRIPTION"$'\n'
-            EXISTING_ARGS+=(BUILD_DESCRIPTION)
-        fi
-        labels+=("org.label-schema.description=\${BUILD_DESCRIPTION}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.url"* 
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_URL"* ]]; then
-            DOCKERFILE+="ARG BUILD_URL"$'\n'
-            EXISTING_ARGS+=(BUILD_URL)
-        fi
-        labels+=("org.label-schema.url=\"\${BUILD_URL}\"")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vcs-url"* 
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_GIT_URL"* ]]; then
-            DOCKERFILE+="ARG BUILD_GIT_URL"$'\n'
-            EXISTING_ARGS+=(BUILD_GIT_URL)
-        fi
-        labels+=("org.label-schema.vcs-url=\${BUILD_GIT_URL}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vcs-ref"* 
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_REF"* ]]; then
-            DOCKERFILE+="ARG BUILD_REF"$'\n'
-            EXISTING_ARGS+=(BUILD_REF)
-        fi
-        labels+=("org.label-schema.vcs-ref=\${BUILD_REF}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vendor"*
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_VENDOR"* ]]; then
-            DOCKERFILE+="ARG BUILD_VENDOR"$'\n'
-            EXISTING_ARGS+=(BUILD_VENDOR)
-        fi
-        labels+=("org.label-schema.vendor=\${BUILD_VENDOR}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.usage"* 
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_DOC_URL"* ]]; then
-            DOCKERFILE+="ARG BUILD_DOC_URL"$'\n'
-            EXISTING_ARGS+=(BUILD_DOC_URL)
-        fi
-        labels+=("org.label-schema.usage=\${BUILD_DOC_URL}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"maintainer"* 
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_MAINTAINER"* ]]; then
-            DOCKERFILE+="ARG BUILD_MAINTAINER"$'\n'
-            EXISTING_ARGS+=(BUILD_MAINTAINER)
-        fi
-        labels+=("maintainer=\${BUILD_MAINTAINER}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.type"*
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_TYPE"* ]]; then
-            DOCKERFILE+="ARG BUILD_TYPE"$'\n'
-            EXISTING_ARGS+=(BUILD_TYPE)
-        fi
-        labels+=("io.hass.type=\${BUILD_TYPE}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.version"*
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_VERSION"* ]]; then
-            DOCKERFILE+="ARG BUILD_VERSION"$'\n'
-            EXISTING_ARGS+=(BUILD_VERSION)
-        fi
-        labels+=("org.label-schema.version=\${BUILD_VERSION}")
-    fi
-
-    if [[
-        "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.version"*
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_VERSION"* ]]; then
-            DOCKERFILE+="ARG BUILD_VERSION"$'\n'
-            EXISTING_ARGS+=(BUILD_VERSION)
-        fi
-        labels+=("io.hass.version=\${BUILD_VERSION}")
-    fi
-
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.arch"*
-    ]]; then
-        if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_ARCH"* ]]; then
-            DOCKERFILE+="ARG BUILD_ARCH"$'\n'
-            EXISTING_ARGS+=(BUILD_ARCH)
-        fi
-        labels+=("io.hass.arch=\${BUILD_ARCH}")
-    fi
-
-    if [[ ${#labels[@]} -ne 0 ]]; then
+    if [[ ! -z "${labels[*]:-}" ]]; then
         IFS=" "
         DOCKERFILE+="LABEL ${labels[*]}"$'\n'
     fi
@@ -1665,21 +894,6 @@ prepare_dockerfile() {
 
 # ==============================================================================
 # RUN LOGIC
-# ------------------------------------------------------------------------------
-# Globals:
-#   BUILD_ARCHS
-#   BUILD_PARALLEL
-#   BUILD_REPOSITORY
-#   BUILD_TARGET
-#   DOCKER_CACHE
-#   DOCKER_PUSH
-#   EX_DOCKERFILE
-#   EX_OK
-#   USE_GIT
-# Arguments:
-#   None
-# Returns:
-#   None
 # ------------------------------------------------------------------------------
 main() {
     trap 'cleanup_on_exit $?' EXIT SIGINT SIGTERM
@@ -1696,17 +910,16 @@ main() {
         || display_error_message 'Dockerfile not found?' "${EX_DOCKERFILE}"
 
     # Gather build information
-    get_info_config
-    get_info_build
-    if [[ "${USE_GIT}" = true ]]; then
-        is_git_repository
-        get_info_git
-    fi
+    [[ -f "${BUILD_TARGET}/config.json" ]] \
+        && get_info_json "${BUILD_TARGET}/config.json"
+    [[ -f "${BUILD_TARGET}/build.json" ]] \
+        && get_info_json "${BUILD_TARGET}/build.json"
+    get_info_git
     get_info_dockerfile
 
     # Getting ready
-    preflight_checks
     prepare_defaults
+    preflight_checks
     prepare_dockerfile
 
     # Docker daemon startup
@@ -1757,9 +970,4 @@ main() {
     # Fin
     exit "${EX_OK}"
 }
-
-# Bootstrap
-if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
-    # Direct call to file
-    main "$@"
-fi  # Else file is included from another script
+main "$@"

@@ -63,16 +63,16 @@ Options:
     ------ Build Architectures ------
 
     --aarch64
-        Build for aarch64 architecture.
+        Build for aarch64 (arm 64 bits) architecture.
 
     --amd64
-        Build for amd64 architecture.
+        Build for amd64 (intel/amd 64 bits) architecture.
 
     --armhf
-        Build for armhf architecture.
+        Build for armhf (arm 32 bits) architecture.
 
     --i386
-        Build for i386 architecture.
+        Build for i386 (intel/amd 32 bits) architecture.
 
     -a, --all
         Build for all architectures.
@@ -80,34 +80,6 @@ Options:
         If a limited set of supported architectures are defined in
         a configuration file, that list is still honored when using
         this flag.
-
-    ------ Build base images ------
-
-    --aarch64-from <image>
-        Use a custom base image when building for aarch64.
-        e.g. --aarch64-image "homeassistant/aarch64-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --amd64-from <image>
-        Use a custom base image when building for amd64.
-        e.g. --amd64-image "homeassistant/amd64-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --armhf-from <image>
-        Use a custom base image when building for armhf.
-        e.g. --armhf-image "homeassistant/armhf-base".
-        Note: This overrides the --from flag for this architecture.
-
-    --i386-from <image>
-        Use a custom base image when building for i386.
-        e.g. --i386-image "homeassistant/i386-image".
-        Note: This overrides the --from flag for this architecture.
-
-    -f, --from <image>
-        Use a custom base image when building.
-        Use '{arch}' as a placeholder for the architecture name.
-        e.g., --from "homeassistant/{arch}-base"
-        Defaults to "hassioaddons/base-{arch}"
 
     ------ Build output ------
 
@@ -134,6 +106,7 @@ Options:
 
     --arg <key> <value>
         Pass additional build arguments into the Docker build.
+        This option can be repeated for multiple key/value pairs.
 
     -c, --no-cache
         Disable build from cache.
@@ -155,45 +128,7 @@ Options:
         The type of the thing you are building.
         Valid values are: addon, base, cluster, homeassistant and supervisor.
         If you are unsure, then you probably don't need this flag.
-        Defaults to 'addon'.
-
-    -n, --name <name>
-        Name or title of the thing that is being built.
-        Note: When building add-ons; this will override the setting from
-              the configuration file.
-
-    -d, --description <description>
-        Description of the thing that is being built.
-        Note: When building add-ons; this will override the setting from
-              the configuration file.
-
-    --vendor <vendor>
-        The name of the vendor providing the thing that is being built.
-
-    -m, --maintainer, --author <author>
-        Name of the maintainer. MUST be in "My Name <email@example.com>" format.
-        e.g., "Franck Nijhof <frenck@addons.community>"
-        Note: When building add-ons; this will override the setting from
-              the configuration file.
-
-    -u, --url <ur>
-        URL to the homepage of the thing that is built.
-        Note: When building add-ons; this will override the setting from
-              the configuration file.
-
-    -c, --doc-url <url>
-        URL to the documentation of the thing that is built.
-        When omitted, the value of --url will be used.
-
-    --git-url <url>
-        The URL to the GIT repository (e.g., GitHub).
-        When omitted, the value of --url will be used or is detected using git.
-
-    -o, --override
-        Always override Docker labels.
-        The normal behavior of the builder is to only add a label when it is
-        not found in the Dockerfile. This flag enforces to override all label
-        values.
+        Defaults to auto detect, with failover to 'addon'.
 ```
 
 ## Examples
