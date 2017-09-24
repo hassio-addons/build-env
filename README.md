@@ -128,7 +128,7 @@ Options:
         The type of the thing you are building.
         Valid values are: addon, base, cluster, homeassistant and supervisor.
         If you are unsure, then you probably don't need this flag.
-        Defaults to 'addon'.
+        Defaults to auto detect, with failover to 'addon'.
 ```
 
 ## Examples

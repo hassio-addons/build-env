@@ -84,8 +84,6 @@ USE_GIT=false
 # ------------------------------------------------------------------------------
 # Displays a simple program header
 #
-# Globals:
-#   None
 # Arguments:
 #   None
 # Returns:
@@ -100,8 +98,6 @@ display_banner() {
 # ------------------------------------------------------------------------------
 # Displays a error message and is able to terminate te script execution
 #
-# Globals:
-#   None
 # Arguments:
 #   $1 Error message
 #   $2 Exit code, script will continue execution when omitted
@@ -124,8 +120,6 @@ display_error_message() {
 # ------------------------------------------------------------------------------
 # Displays a notice
 #
-# Globals:
-#   None
 # Arguments:
 #   $* Notice message to display
 # Returns:
@@ -142,8 +136,6 @@ display_notice_message() {
 # ------------------------------------------------------------------------------
 # Displays a status message
 #
-# Globals:
-#   None
 # Arguments:
 #   $* Status message to display
 # Returns:
@@ -158,8 +150,6 @@ display_status_message() {
 # ------------------------------------------------------------------------------
 # Displays the help of this program
 #
-# Globals:
-#   EX_OK
 # Arguments:
 #   $1 Exit code
 #   $2 Error message
@@ -258,7 +248,7 @@ Options:
         The type of the thing you are building.
         Valid values are: addon, base, cluster, homeassistant and supervisor.
         If you are unsure, then you probably don't need this flag.
-        Defaults to 'addon'.
+        Defaults to auto detect, with failover to 'addon'.
 
 EOF
 
@@ -272,9 +262,6 @@ EOF
 # ------------------------------------------------------------------------------
 # Cleanup function after execution is of the script is stopped. (trap)
 #
-# Globals:
-#   EX_OK
-#   TRAPPED
 # Arguments:
 #   $1 Exit code
 # Returns:
@@ -296,12 +283,6 @@ cleanup_on_exit() {
 # ------------------------------------------------------------------------------
 # Clones a remote GIT repository to a local working dir
 #
-# Globals:
-#   BUILD_BRANCH
-#   BUILD_REPOSITORY
-#   EX_GIT_CLONE
-#   EX_NOT_EMPTY
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -326,19 +307,6 @@ clone_repository() {
 # ------------------------------------------------------------------------------
 # Start the Docker build
 #
-# Globals:
-#   BUILD_ARCHS_FROM
-#   BUILD_ARGS
-#   BUILD_IMAGE
-#   BUILD_REF
-#   BUILD_TARGET
-#   BUILD_TYPE
-#   BUILD_VERSION
-#   DOCKER_CACHE
-#   DOCKER_SQUASH
-#   DOCKERFILE
-#   EX_DOCKER_BUILD
-#   EX_OK
 # Arguments:
 #   $1 Architecture to build
 # Returns:
@@ -393,9 +361,6 @@ docker_build() {
 # ------------------------------------------------------------------------------
 # Disables Docker's cross compiler features (qemu)
 #
-# Globals:
-#   EX_CROSS
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -421,9 +386,6 @@ docker_disable_crosscompile() {
 # ------------------------------------------------------------------------------
 # Enables Docker's cross compiler features (qemu)
 #
-# Globals:
-#   EX_CROSS
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -444,13 +406,6 @@ docker_enable_crosscompile() {
 # ------------------------------------------------------------------------------
 # Push Docker build result to DockerHub
 #
-# Globals:
-#   BUILD_IMAGE
-#   BUILD_VERSION
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_DOCKER_PUSH
-#   EX_OK
 # Arguments:
 #   $1 Architecture
 # Returns:
@@ -491,11 +446,6 @@ docker_push() {
 # ------------------------------------------------------------------------------
 # Starts the Docker daemon
 #
-# Globals:
-#   DOCKER_PID
-#   DOCKER_TIMEOUT
-#   EX_DOCKER_TIMEOUT
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -532,11 +482,6 @@ docker_start_daemon() {
 # ------------------------------------------------------------------------------
 # Stops Docker daemon
 #
-# Globals:
-#   DOCKER_PID
-#   DOCKER_TIMEOUT
-#   EX_DOCKER_TIMEOUT
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -577,13 +522,6 @@ docker_stop_daemon() {
 # ------------------------------------------------------------------------------
 # Places 'latest'/'test' tag(s) onto the current build result
 #
-# Globals:
-#   BUILD_IMAGE
-#   BUILD_VERSION
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_DOCKER_TAG
-#   EX_OK
 # Arguments:
 #   $1 Architecture
 # Returns:
@@ -615,10 +553,6 @@ docker_tag() {
 # ------------------------------------------------------------------------------
 # Try to pull latest version of the current image to use as cache
 #
-# Globals:
-#   BUILD_IMAGE
-#   DOCKER_CACHE
-#   EX_OK
 # Arguments:
 #   $1 Architecture
 # Returns:
@@ -642,15 +576,6 @@ docker_warmup_cache() {
 # ------------------------------------------------------------------------------
 # Tries to fetch information from the add-on config file.
 #
-# Globals:
-#   BUILD_ARCHS_FROM
-#   BUILD_ARGS
-#   BUILD_IMAGE
-#   BUILD_TYPE
-#   BUILD_VERSION
-#   DOCKER_SQUASH
-#   SUPPORTED_ARCHS
-#   EX_OK
 # Arguments:
 #   $1 JSON file to parse
 # Returns:
@@ -708,19 +633,12 @@ get_info_json() {
 # ------------------------------------------------------------------------------
 # Tries to fetch information from existing Dockerfile
 #
-# Globals:
-#   BUILD_TARGET
-#   BUILD_TYPE
-#   DOCKERFILE
-#   EX_OK
-#   EXISTING_LABELS
 # Arguments:
 #   None
 # Returns:
 #   Exit code
 # ------------------------------------------------------------------------------
 get_info_dockerfile() {
-    local from
     local labels
     local json
 
@@ -755,14 +673,6 @@ get_info_dockerfile() {
 # ------------------------------------------------------------------------------
 # Tries to fetch information from the GIT repository
 #
-# Globals:
-#   BUILD_GIT_URL
-#   BUILD_REF
-#   BUILD_URL
-#   BUILD_VERSION
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -808,9 +718,6 @@ get_info_git() {
 # ------------------------------------------------------------------------------
 # Ensure this directory is actually a GIT repository
 #
-# Globals:
-#   EX_GIT
-#   EX_OK
 # Arguments:
 #   None
 # Returns:
@@ -830,23 +737,6 @@ is_git_repository() {
 # ------------------------------------------------------------------------------
 # Parse CLI arguments
 #
-# Globals:
-#   BUILD_ALL
-#   BUILD_ARCHS
-#   BUILD_ARGS
-#   BUILD_BRANCH
-#   BUILD_IMAGE
-#   BUILD_PARALLEL
-#   BUILD_REPOSITORY
-#   BUILD_TARGET
-#   BUILD_URL
-#   DOCKER_CACHE
-#   DOCKER_PUSH
-#   DOCKER_SQUASH
-#   DOCKER_TAG_LATEST
-#   DOCKER_TAG_TEST
-#   EX_UNKNOWN
-#   USE_GIT
 # Arguments:
 #   None
 # Returns:
@@ -934,20 +824,6 @@ parse_cli_arguments() {
 # ------------------------------------------------------------------------------
 # Ensures we have all the information we need to continue building
 #
-# Globals:
-#   BUILD_ALL
-#   BUILD_ARCHS
-#   BUILD_IMAGE
-#   BUILD_TYPE
-#   BUILD_VERSION
-#   EX_INVALID_TYPE
-#   EX_MULTISTAGE
-#   EX_NO_ARCHS
-#   EX_OK
-#   EX_PRIVILEGES
-#   EX_SUPPORTED
-#   EX_VERSION
-#   SUPPORTED_ARCHS
 # Arguments:
 #   None
 # Returns:
@@ -1003,15 +879,6 @@ preflight_checks() {
 # ------------------------------------------------------------------------------
 # Prepares all variables for building use
 #
-# Globals:
-#   BUILD_ALL
-#   BUILD_DOC_URL
-#   BUILD_GIT_URL
-#   BUILD_REF
-#   BUILD_TYPE
-#   BUILD_URL
-#   EX_OK
-#   SUPPORTED_ARCHS
 # Arguments:
 #   None
 # Returns:
@@ -1040,10 +907,6 @@ prepare_defaults() {
 #
 # This is mainly to maintain some form of backwards compatibility
 #
-# Globals:
-#   DOCKERFILE
-#   EX_OK
-#   EXISTING_LABELS
 # Arguments:
 #   None
 # Returns:
@@ -1074,21 +937,6 @@ prepare_dockerfile() {
 
 # ==============================================================================
 # RUN LOGIC
-# ------------------------------------------------------------------------------
-# Globals:
-#   BUILD_ARCHS
-#   BUILD_PARALLEL
-#   BUILD_REPOSITORY
-#   BUILD_TARGET
-#   DOCKER_CACHE
-#   DOCKER_PUSH
-#   EX_DOCKERFILE
-#   EX_OK
-#   USE_GIT
-# Arguments:
-#   None
-# Returns:
-#   None
 # ------------------------------------------------------------------------------
 main() {
     trap 'cleanup_on_exit $?' EXIT SIGINT SIGTERM
