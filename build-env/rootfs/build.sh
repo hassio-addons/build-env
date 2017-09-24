@@ -31,9 +31,8 @@ readonly EX_NO_FROM=14          # Missing image to build from
 readonly EX_NO_IMAGE_NAME=15    # Missing name of image to build
 readonly EX_NOT_EMPTY=16        # Workdirectory is not empty
 readonly EX_NOT_GIT=17          # This is not a Git repository
-readonly EX_PRIVILEGES=18       # Missing extended privileges
-readonly EX_SUPPORTED=19        # Requested build architecture is not supported
-readonly EX_VERSION=20          # Version not found and specified
+readonly EX_SUPPORTED=18        # Requested build architecture is not supported
+readonly EX_VERSION=19          # Version not found and specified
 
 # Constants
 readonly DOCKER_PIDFILE='/var/run/docker.pid' # Docker daemon PID file
@@ -783,15 +782,6 @@ parse_cli_arguments() {
 preflight_checks() {
 
     display_status_message 'Running preflight checks'
-
-    # Deal breakers
-    if ip link add dummy0 type dummy > /dev/null; then
-        ip link delete dummy0 > /dev/null
-    else
-        display_error_message \
-            'This build enviroment needs extended privileges (--privileged)' \
-            "${EX_PRIVILEGES}"
-    fi
 
     [[ ${#BUILD_ARCHS[@]} -eq 0 ]] && [[ "${BUILD_ALL}" = false ]] \
         && display_help "${EX_NO_ARCHS}" 'No architectures to build'
