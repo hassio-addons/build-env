@@ -411,7 +411,7 @@ docker_build() {
     build_args+=(--tag "${image}:${BUILD_VERSION}")
 
     if [[ "${DOCKER_CACHE}" = true ]]; then
-        build_args+=(--cache-from "${BUILD_IMAGE}:latest")
+        build_args+=(--cache-from "${image}:latest")
     else
         build_args+=(--no-cache)
     fi
