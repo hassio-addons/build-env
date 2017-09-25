@@ -77,7 +77,7 @@ Options:
     -a, --all
         Build for all architectures.
         Same as --aarch64 --amd64 --armhf --i386.
-        If a limited set of supported architectures are defined in
+        If a limited set of supported architectures is defined in
         a configuration file, that list is still honored when using
         this flag.
 
@@ -140,11 +140,16 @@ Options:
     -c, --no-cache
         Disable build from cache.
 
-    -s, --single
-        Do not parallelize builds. Build one architecture at the time.
+    --parallel
+        Parallelize builds. Build all requested architectures in parallel.
+        While this speeds up the process tremendously, it is, however, more
+        prone to errors caused by system resources.
 
-    -q, --no-squash
-        Do not squash the layers of the resulting image.
+    --squash
+        Squash the layers of the resulting image to the parent image, and
+        still allows for base image reuse. Use with care; you can not use the
+        image for caching after squashing!
+        Note: This feature is still marked "Experimental" by Docker.
 
     ------ Build meta data ------
 
