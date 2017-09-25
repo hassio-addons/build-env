@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.3.0][v0.3.0] (2017-09-26)
+
+[Full Changelog][v0.2.1-v0.3.0]
+
+### Added
+
+- Automatically disable caching when using squash [#31][31]
+
+### Changed
+
+- Changed squash option to be disabled by default [#31][31]
+- Changed parallel build option to be disabled by default [#31][31]
+
 ## [v0.2.1][v0.2.1] (2017-09-24)
 
 [Full Changelog][v0.2.0-v0.2.1]
@@ -158,6 +171,7 @@ No unreleased changes yet.
 [28]: https://github.com/hassio-addons/build-env/pull/28
 [29]: https://github.com/hassio-addons/build-env/pull/29
 [3]: https://github.com/hassio-addons/build-env/pull/3
+[31]: https://github.com/hassio-addons/build-env/pull/31
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
 [8]: https://github.com/hassio-addons/build-env/pull/8
@@ -186,4 +200,6 @@ No unreleased changes yet.
 [v0.1.1]: https://github.com/hassio-addons/build-env/tree/v0.1.1
 [v0.2.0-v0.2.1]: https://github.com/hassio-addons/build-env/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/hassio-addons/build-env/tree/v0.2.0
+[v0.2.1-v0.3.0]: https://github.com/hassio-addons/build-env/compare/v0.2.1...v0.3.0
 [v0.2.1]: https://github.com/hassio-addons/build-env/tree/v0.2.1
+[v0.3.0]: https://github.com/hassio-addons/build-env/tree/v0.3.0

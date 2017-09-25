@@ -77,12 +77,11 @@ declare USE_GIT
 BUILD_ARCHS=()
 BUILD_BRANCH='master'
 BUILD_LABEL_OVERRIDE=false
-BUILD_PARALLEL=true
+BUILD_PARALLEL=false
 BUILD_TARGET=$(pwd)
 DOCKER_CACHE=true
 DOCKER_PID=9999999999
 DOCKER_PUSH=false
-DOCKER_SQUASH=true
 DOCKER_TAG_LATEST=false
 DOCKER_TAG_TEST=false
 TRAPPED=false
@@ -271,11 +270,16 @@ Options:
     -c, --no-cache
         Disable build from cache.
 
-    -s, --single
-        Do not parallelize builds. Build one architecture at the time.
+    --parallel
+        Parallelize builds. Build all requested architectures in parallel.
+        While this speeds up the process tremendously, it is, however, more
+        prone to errors caused by system resources.
 
-    -q, --no-squash
-        Do not squash the layers of the resulting image.
+    --squash
+        Squash the layers of the resulting image to the parent image, and
+        still allows for base image reuse. Use with care; you can not use the
+        image for caching after squashing!
+        Note: This feature is still marked "Experimental" by Docker.
 
     ------ Build meta data ------
 
@@ -721,9 +725,11 @@ get_info_json() {
         fi
     done <<< "${archs}"
     
-    squash=$(jq -r '.squash // empty' "${jsonfile}")
-    [[ "${squash}" = "true" ]] && DOCKER_SQUASH=true
-    [[ "${squash}" = "false" ]] && DOCKER_SQUASH=false
+    if [[ -z "${DOCKER_SQUASH}" ]]; then
+        squash=$(jq -r '.squash | not' "${jsonfile}")
+        [[ "${squash}" = true ]] && DOCKER_SQUASH=true
+        [[ "${squash}" = false ]] && DOCKER_SQUASH=false
+    fi
 
     IFS=
     args=$(jq -r '.args // empty | keys[]' "${jsonfile}")
@@ -1022,11 +1028,11 @@ parse_cli_arguments() {
             -n|--no-cache) 
                 DOCKER_CACHE=false
                 ;;
-            -q|--no-squash)
-                DOCKER_SQUASH=false
+            --squash)
+                DOCKER_SQUASH=true
                 ;;
-            -s|--single)
-                BUILD_PARALLEL=false
+            --parallel)
+                BUILD_PARALLEL=true
                 ;;
             -g|--git)
                 USE_GIT=true
@@ -1229,6 +1235,13 @@ prepare_defaults() {
 
     [[ -z "${BUILD_MAINTAINER:-}" ]] \
         && BUILD_MAINTAINER="Unknown"
+
+    if [[ "${DOCKER_SQUASH}" = "true" && "${DOCKER_CACHE}" = "true" ]]; then
+        display_notice_message \
+            "Disabled Docker cache, since squashing is enabled."
+        DOCKER_CACHE=false
+    fi
+
 
     return "${EX_OK}"
 }
