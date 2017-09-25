@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.3.1][v0.3.1] (2017-09-26)
+
+[Full Changelog][v0.3.0-v0.3.1]
+
+### Fixed
+
+- Fixes unbound variable error [#32][32]
+
 ## [v0.3.0][v0.3.0] (2017-09-26)
 
 [Full Changelog][v0.2.1-v0.3.0]
@@ -172,6 +180,7 @@ No unreleased changes yet.
 [29]: https://github.com/hassio-addons/build-env/pull/29
 [3]: https://github.com/hassio-addons/build-env/pull/3
 [31]: https://github.com/hassio-addons/build-env/pull/31
+[32]: https://github.com/hassio-addons/build-env/pull/32
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
 [8]: https://github.com/hassio-addons/build-env/pull/8
@@ -202,4 +211,6 @@ No unreleased changes yet.
 [v0.2.0]: https://github.com/hassio-addons/build-env/tree/v0.2.0
 [v0.2.1-v0.3.0]: https://github.com/hassio-addons/build-env/compare/v0.2.1...v0.3.0
 [v0.2.1]: https://github.com/hassio-addons/build-env/tree/v0.2.1
+[v0.3.0-v0.3.1]: https://github.com/hassio-addons/build-env/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://github.com/hassio-addons/build-env/tree/v0.3.0
+[v0.3.1]: https://github.com/hassio-addons/build-env/tree/v0.3.1
