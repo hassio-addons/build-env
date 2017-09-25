@@ -726,7 +726,7 @@ get_info_json() {
     done <<< "${archs}"
     
     if [[ -z "${DOCKER_SQUASH:-}" ]]; then
-        squash=$(jq -r '.squash | not' "${jsonfile}")
+        squash=$(jq -r '.squash | not | not' "${jsonfile}")
         [[ "${squash}" = true ]] && DOCKER_SQUASH=true
         [[ "${squash}" = false ]] && DOCKER_SQUASH=false
     fi

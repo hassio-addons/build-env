@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.3.2][v0.3.2] (2017-09-26)
+
+[Full Changelog][v0.3.1-v0.3.2]
+
+### Fixed
+
+- Fixed squash, true/false mixup [#33][33]
+
 ## [v0.3.1][v0.3.1] (2017-09-26)
 
 [Full Changelog][v0.3.0-v0.3.1]
@@ -181,6 +189,7 @@ No unreleased changes yet.
 [3]: https://github.com/hassio-addons/build-env/pull/3
 [31]: https://github.com/hassio-addons/build-env/pull/31
 [32]: https://github.com/hassio-addons/build-env/pull/32
+[33]: https://github.com/hassio-addons/build-env/pull/33
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
 [8]: https://github.com/hassio-addons/build-env/pull/8
@@ -213,4 +222,6 @@ No unreleased changes yet.
 [v0.2.1]: https://github.com/hassio-addons/build-env/tree/v0.2.1
 [v0.3.0-v0.3.1]: https://github.com/hassio-addons/build-env/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://github.com/hassio-addons/build-env/tree/v0.3.0
+[v0.3.1-v0.3.2]: https://github.com/hassio-addons/build-env/compare/v0.3.1...v0.3.2
 [v0.3.1]: https://github.com/hassio-addons/build-env/tree/v0.3.1
+[v0.3.2]: https://github.com/hassio-addons/build-env/tree/v0.3.2
