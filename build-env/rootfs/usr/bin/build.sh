@@ -1206,6 +1206,9 @@ prepare_defaults() {
         BUILD_ARCHS=(${SUPPORTED_ARCHS[*]});
     fi
 
+    [[ -z "${DOCKER_SQUASH:-}" ]] \
+        && DOCKER_SQUASH=false
+
     [[ -z "${BUILD_TYPE:-}" ]] \
         && BUILD_TYPE="addon"
 
