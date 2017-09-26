@@ -25,7 +25,7 @@ a single Docker image. This makes this version portable and removes the
 need for "large" and complicated Bash scripts (as provided by Home Assistant).
 
 ```bash
-docker run -it --rm --privileged --name buildenv \
+docker run --rm --privileged \
     -v ~/.docker:/root/.docker \
     -v "$(pwd)":/docker \
     hassioaddons/build-env:latest \
@@ -37,7 +37,7 @@ the built environment. This line may be omitted in case you don't want to
 push your image.
 
 Adding `-v "$(pwd)":/docker` shares your current working directory as the
-directory to start the build process from. This line can be omitted in case
+directory to start the build process from. This line MUST be omitted in case
 you are building from a remote repository.
 
 The `[options]` can be replaced by one or more of the following options:
@@ -201,10 +201,11 @@ Options:
 The following example will build a local add-on and push it onto Docker hub.
 
 ```bash
-docker run -it --rm --privileged --name buildenv \
+docker run --rm --privileged \
     -v ~/.docker:/root/.docker \
     -v "$(pwd)":/docker \
     hassioaddons/build-env:latest \
+    --target addon-slug \
     --tag-latest \
     --push \
     --all
@@ -220,7 +221,7 @@ docker run -it --rm --privileged --name build \
     hassioaddons/build-env:latest \
     --repository https://github.com/hassio-addons/addon-example \
     --target example \
-    --tag-test \
+    --git \
     --all
 ```
 
