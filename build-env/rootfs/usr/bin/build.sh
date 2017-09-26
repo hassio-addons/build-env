@@ -405,7 +405,7 @@ docker_build() {
 
     [[ "${DOCKER_SQUASH}" = true ]] && build_args+=(--squash)
 
-    if [[ "${BUILD_ARCHS_FROM[${arch}]}" ]]; then
+    if [[ ! -z "${BUILD_ARCHS_FROM[${arch}]:-}" ]]; then
         build_args+=(--build-arg "BUILD_FROM=${BUILD_ARCHS_FROM[${arch}]}")
     else
         from="${BUILD_FROM//\{arch\}/${arch}}"
