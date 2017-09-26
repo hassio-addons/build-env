@@ -405,12 +405,12 @@ docker_build() {
 
     [[ "${DOCKER_SQUASH}" = true ]] && build_args+=(--squash)
 
-    if [[ "${BUILD_ARCHS_FROM[${arch}]}" ]]; then
+    if [[ ! -z "${BUILD_ARCHS_FROM[${arch}]:-}" ]]; then
         build_args+=(--build-arg "BUILD_FROM=${BUILD_ARCHS_FROM[${arch}]}")
     else
         from="${BUILD_FROM//\{arch\}/${arch}}"
         build_args+=(--build-arg "BUILD_FROM=${from}")
-    fi  
+    fi
 
     if [[ "${DOCKER_CACHE}" = true ]]; then
         build_args+=(--cache-from "${image}:latest")
@@ -489,10 +489,10 @@ docker_disable_crosscompile() {
 
     (
         update-binfmts --disable qemu-arm && \
-        update-binfmts --disable qemu-aarch64 
+        update-binfmts --disable qemu-aarch64
     ) || display_error_message 'Failed disabling cross compile features!' \
         "${EX_CROSS}"
-    
+
     return "${EX_OK}"
 }
 
@@ -506,13 +506,13 @@ docker_disable_crosscompile() {
 # ------------------------------------------------------------------------------
 docker_enable_crosscompile() {
     display_status_message 'Enabling cross compile features'
-    ( 
+    (
         mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc && \
         update-binfmts --enable qemu-arm && \
-        update-binfmts --enable qemu-aarch64 
+        update-binfmts --enable qemu-aarch64
     ) || display_error_message 'Failed enabling cross compile features!' \
         "${EX_CROSS}"
-    
+
     return "${EX_OK}"
 }
 
@@ -621,7 +621,7 @@ docker_stop_daemon() {
                 display_error_message \
                     'Timeout while waiting for Docker to shut down' \
                     "${EX_DOCKER_TIMEOUT}"
-            fi            
+            fi
         done
 
         display_status_message 'Docker daemon has been stopped'
@@ -724,7 +724,7 @@ get_info_json() {
                 ".build_from | .${arch}" "${jsonfile}")
         fi
     done <<< "${archs}"
-    
+
     if [[ -z "${DOCKER_SQUASH:-}" ]]; then
         squash=$(jq -r '.squash | not | not' "${jsonfile}")
         [[ "${squash}" = true ]] && DOCKER_SQUASH=true
@@ -740,7 +740,7 @@ get_info_json() {
             BUILD_ARGS[${arg}]=$(jq -r \
                 ".args | .${arg}" "${jsonfile}")
         fi
-    done <<< "${args}"        
+    done <<< "${args}"
 
     return "${EX_OK}"
 }
@@ -764,8 +764,8 @@ get_info_dockerfile() {
     DOCKERFILE=$(<"${BUILD_TARGET}/Dockerfile")
     json=$(dockerfile2json "${BUILD_TARGET}/Dockerfile")
 
-    if [[ 
-        ! -z $(jq -r '.[] | select(.cmd=="arg") // empty' <<< "${json}") 
+    if [[
+        ! -z $(jq -r '.[] | select(.cmd=="arg") // empty' <<< "${json}")
     ]]; then
         args=$(jq -r '.[] | select(.cmd=="arg") | .value | .[]' \
             <<< "${json}")
@@ -824,9 +824,9 @@ get_info_dockerfile() {
         BUILD_MAINTAINER=$(jq \
             -r '.[] | select(.cmd=="maintainer") | .value[0]' \
             <<< "${json}")
-    fi    
+    fi
 
-    if [[ 
+    if [[
         ! -z $(jq -r '.[] | select(.cmd=="label") // empty' <<< "${json}")
     ]]; then
         labels=$(jq -r '.[] | select(.cmd=="label") | .value | .[]' \
@@ -890,7 +890,7 @@ get_info_git() {
     # Is this even a Git repository?
     if ! git -C . rev-parse; then
 
-        if [[ "${USE_GIT}" = true ]]; then            
+        if [[ "${USE_GIT}" = true ]]; then
             display_error_message \
                 'You have added --git, but is this a Git repo?' \
                 "${EX_GIT}"
@@ -912,9 +912,9 @@ get_info_git() {
                 || true)
 
         # Is current HEAD on a tag and master branch?
-        if [[ 
-            ! -z "${tag:-}" 
-            && "${branch}" = "master" 
+        if [[
+            ! -z "${tag:-}"
+            && "${branch}" = "master"
             && "${USE_GIT}" = true
         ]]; then
             # Is it the latest tag?
@@ -927,7 +927,7 @@ get_info_git() {
             BUILD_VERSION="${ref}"
             [[ "${branch}" = "master" ]] && DOCKER_TAG_TEST=true
         fi
-        
+
     else
         # Uncomitted changes on the Git repository, dirty!
         BUILD_REF="dirty"
@@ -1025,7 +1025,7 @@ parse_cli_arguments() {
             -p|--push)
                 DOCKER_PUSH=true
                 ;;
-            -n|--no-cache) 
+            -n|--no-cache)
                 DOCKER_CACHE=false
                 ;;
             --squash)
@@ -1129,7 +1129,7 @@ preflight_checks() {
     # Is the requested architecture supported?
     if [[ ${#BUILD_ARCHS[@]} -ne 0 ]] \
         && [[ "${BUILD_ALL}" = false ]] \
-        && [[ ! -z "${SUPPORTED_ARCHS[*]:-}" ]]; 
+        && [[ ! -z "${SUPPORTED_ARCHS[*]:-}" ]];
     then
         for arch in "${BUILD_ARCHS[@]}"; do
             [[ "${SUPPORTED_ARCHS[*]}" = *"${arch}"* ]] || \
@@ -1145,7 +1145,7 @@ preflight_checks() {
             [[ ! -z $arch && -z "${BUILD_ARCHS_FROM[${arch}]:-}" ]] \
                 && display_error_message \
                     "Architucure ${arch}, is missing a image to build from" \
-                    "${EX_NO_FROM}"  
+                    "${EX_NO_FROM}"
         done
     fi
 
@@ -1182,7 +1182,7 @@ preflight_checks() {
 
     [[ -z "${BUILD_DOC_URL:-}" ]] \
         && display_notice_message 'Documentation url is not set!'
-    
+
     return "${EX_OK}"
 }
 
@@ -1205,6 +1205,9 @@ prepare_defaults() {
         IFS=' '
         BUILD_ARCHS=(${SUPPORTED_ARCHS[*]});
     fi
+
+    [[ -z "${DOCKER_SQUASH:-}" ]] \
+        && DOCKER_SQUASH=false
 
     [[ -z "${BUILD_TYPE:-}" ]] \
         && BUILD_TYPE="addon"
@@ -1270,7 +1273,7 @@ prepare_dockerfile() {
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.build-date"* 
+        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.build-date"*
     ]]; then
         if [[ ! "${EXISTING_ARGS[*]}" = *"BUILD_DATE"* ]]; then
             DOCKERFILE+="ARG BUILD_DATE"$'\n'
@@ -1279,32 +1282,32 @@ prepare_dockerfile() {
         labels+=("org.label-schema.build-date=\${BUILD_DATE}")
     fi
 
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.name"* 
+    if [[ "${BUILD_LABEL_OVERRIDE}" = true
+        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.name"*
     ]]; then
         labels+=("org.label-schema.name=${BUILD_NAME}")
     fi
 
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.description"* 
+    if [[ "${BUILD_LABEL_OVERRIDE}" = true
+        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.description"*
     ]]; then
         labels+=("org.label-schema.description=${BUILD_DESCRIPTION}")
     fi
 
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.url"* 
+    if [[ "${BUILD_LABEL_OVERRIDE}" = true
+        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.url"*
     ]]; then
         labels+=("org.label-schema.url=\"${BUILD_URL}\"")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vcs-url"* 
+        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vcs-url"*
     ]]; then
         labels+=("org.label-schema.vcs-url=${BUILD_GIT_URL}")
     fi
 
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vcs-ref"* 
+    if [[ "${BUILD_LABEL_OVERRIDE}" = true
+        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vcs-ref"*
     ]]; then
         labels+=("org.label-schema.vcs-ref=${BUILD_REF}")
     fi
@@ -1316,18 +1319,18 @@ prepare_dockerfile() {
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.usage"* 
+        || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.usage"*
     ]]; then
         labels+=("org.label-schema.usage=${BUILD_DOC_URL}")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
-        || ! "${EXISTING_LABELS[*]:-}" = *"maintainer"* 
+        || ! "${EXISTING_LABELS[*]:-}" = *"maintainer"*
     ]]; then
         labels+=("maintainer=${BUILD_MAINTAINER}")
     fi
 
-    if [[ "${BUILD_LABEL_OVERRIDE}" = true 
+    if [[ "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.type"*
     ]]; then
         labels+=("io.hass.type=${BUILD_TYPE}")
@@ -1340,7 +1343,7 @@ prepare_dockerfile() {
     fi
 
     if [[
-        "${BUILD_LABEL_OVERRIDE}" = true 
+        "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.version"*
     ]]; then
         labels+=("io.hass.version=${BUILD_VERSION}")
@@ -1431,7 +1434,7 @@ main() {
         for arch in "${BUILD_ARCHS[@]}"; do
             docker_build "${arch}" | sed -u "s/^/[${arch}] /"
         done
-    fi  
+    fi
     display_status_message 'Build of all requested architectures finished'
 
     # Tag it
@@ -1447,6 +1450,7 @@ main() {
         background_jobs=()
         for arch in "${BUILD_ARCHS[@]}"; do
             docker_push "${arch}" | sed  -u "s/^/[${arch}] /" &
+            background_jobs+=($!)
         done
 
         # Wait for all push jobs to finish
