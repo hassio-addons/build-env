@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.3.4][v0.3.4] (2017-09-26)
+
+[Full Changelog][v0.3.3-v0.3.4]
+
+### Removed
+
+- Removed Git master branch detection. [#35][35]
+
 ## [v0.3.3][v0.3.3] (2017-09-26)
 
 [Full Changelog][v0.3.2-v0.3.3]
@@ -205,6 +213,7 @@ No unreleased changes yet.
 [32]: https://github.com/hassio-addons/build-env/pull/32
 [33]: https://github.com/hassio-addons/build-env/pull/33
 [34]: https://github.com/hassio-addons/build-env/pull/34
+[35]: https://github.com/hassio-addons/build-env/pull/35
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
 [8]: https://github.com/hassio-addons/build-env/pull/8
@@ -241,4 +250,6 @@ No unreleased changes yet.
 [v0.3.1]: https://github.com/hassio-addons/build-env/tree/v0.3.1
 [v0.3.2-v0.3.3]: https://github.com/hassio-addons/build-env/compare/v0.3.2...v0.3.3
 [v0.3.2]: https://github.com/hassio-addons/build-env/tree/v0.3.2
+[v0.3.3-v0.3.4]: https://github.com/hassio-addons/build-env/compare/v0.3.3...v0.3.4
 [v0.3.3]: https://github.com/hassio-addons/build-env/tree/v0.3.3
+[v0.3.4]: https://github.com/hassio-addons/build-env/tree/v0.3.4
