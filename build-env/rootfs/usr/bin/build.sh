@@ -878,7 +878,6 @@ get_info_dockerfile() {
 #   Exit code
 # ------------------------------------------------------------------------------
 get_info_git() {
-    local branch
     local ref
     local repo
     local tag
@@ -905,18 +904,12 @@ get_info_git() {
     if [[ -z "$(git status --porcelain)" ]]; then
 
         ref=$(git rev-parse --short HEAD)
-        BUILD_REF="${ref}"
-
-        branch=$(git rev-parse --abbrev-ref HEAD)
         tag=$(git describe --exact-match HEAD --abbrev=0 --tags 2> /dev/null \
                 || true)
+        BUILD_REF="${ref}"
 
         # Is current HEAD on a tag and master branch?
-        if [[
-            ! -z "${tag:-}"
-            && "${branch}" = "master"
-            && "${USE_GIT}" = true
-        ]]; then
+        if [[ ! -z "${tag:-}" && "${USE_GIT}" = true ]]; then
             # Is it the latest tag?
             if [[ "$(git describe --abbrev=0 --tags)" = "${tag}" ]]; then
                 DOCKER_TAG_LATEST=true
@@ -925,7 +918,7 @@ get_info_git() {
         else
             # We are clean, but version is unknown, use commit SHA as version
             BUILD_VERSION="${ref}"
-            [[ "${branch}" = "master" ]] && DOCKER_TAG_TEST=true
+            DOCKER_TAG_TEST=true
         fi
 
     else
