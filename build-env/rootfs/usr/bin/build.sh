@@ -30,6 +30,7 @@ readonly EX_MULTISTAGE=13       # Dockerfile contains multiple stages
 readonly EX_NO_ARCHS=14         # No architectures to build
 readonly EX_NO_IMAGE_NAME=15    # Missing name of image to build
 readonly EX_NOT_EMPTY=16        # Workdirectory is not empty
+readonly EX_NOT_GIT=20          # This is not a Git repository
 readonly EX_PRIVILEGES=17       # Not running without --privileged
 readonly EX_SUPPORTED=18        # Requested build architecture is not supported
 readonly EX_VERSION=19          # Version not found and specified
@@ -878,7 +879,6 @@ get_info_dockerfile() {
 #   Exit code
 # ------------------------------------------------------------------------------
 get_info_git() {
-    local ref
     local repo
     local tag
     local url
@@ -903,24 +903,25 @@ get_info_git() {
     # Is the Git repository dirty? (Uncomitted changes in repository)
     if [[ -z "$(git status --porcelain)" ]]; then
 
-        ref=$(git rev-parse --short HEAD)
-        tag=$(git describe --exact-match HEAD --abbrev=0 --tags 2> /dev/null \
-                || true)
-        BUILD_REF="${ref}"
+        BUILD_REF=$(git rev-parse --short HEAD)
 
-        # Is current HEAD on a tag and master branch?
-        if [[ ! -z "${tag:-}" && "${USE_GIT}" = true ]]; then
-            # Is it the latest tag?
-            if [[ "$(git describe --abbrev=0 --tags)" = "${tag}" ]]; then
-                DOCKER_TAG_LATEST=true
+        if [[ "${USE_GIT}" = true ]]; then
+            tag=$(git describe --exact-match HEAD --abbrev=0 --tags 2> \
+                /dev/null || true)
+
+            # Is current HEAD on a tag and master branch?
+            if [[ ! -z "${tag:-}" ]]; then
+                # Is it the latest tag?
+                if [[ "$(git describe --abbrev=0 --tags)" = "${tag}" ]]; then
+                    DOCKER_TAG_LATEST=true
+                fi
+                BUILD_VERSION="${tag#v}"
+            else
+                # We are clean, but version is unknown, lets use commit SHA
+                BUILD_VERSION="${BUILD_REF}"
+                DOCKER_TAG_TEST=true
             fi
-            BUILD_VERSION="${tag#v}"
-        else
-            # We are clean, but version is unknown, use commit SHA as version
-            BUILD_VERSION="${ref}"
-            DOCKER_TAG_TEST=true
         fi
-
     else
         # Uncomitted changes on the Git repository, dirty!
         BUILD_REF="dirty"
