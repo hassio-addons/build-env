@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.3.6][v0.3.6] (2017-10-04)
+
+[Full Changelog][v0.3.5-v0.3.6]
+
+### Fixed
+
+- Added missing exit code definition [#38][38]
+- Fixes issue with --git being enabled all the time [#38][38]
+
 ## [v0.3.5][v0.3.5] (2017-10-04)
 
 [Full Changelog][v0.3.4-v0.3.5]
@@ -223,6 +232,7 @@ No unreleased changes yet.
 [34]: https://github.com/hassio-addons/build-env/pull/34
 [35]: https://github.com/hassio-addons/build-env/pull/35
 [37]: https://github.com/hassio-addons/build-env/pull/37
+[38]: https://github.com/hassio-addons/build-env/pull/38
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
 [8]: https://github.com/hassio-addons/build-env/pull/8
@@ -263,4 +273,6 @@ No unreleased changes yet.
 [v0.3.3]: https://github.com/hassio-addons/build-env/tree/v0.3.3
 [v0.3.4-v0.3.5]: https://github.com/hassio-addons/build-env/compare/v0.3.4...v0.3.5
 [v0.3.4]: https://github.com/hassio-addons/build-env/tree/v0.3.4
+[v0.3.5-v0.3.6]: https://github.com/hassio-addons/build-env/compare/v0.3.5...v0.3.6
 [v0.3.5]: https://github.com/hassio-addons/build-env/tree/v0.3.5
+[v0.3.6]: https://github.com/hassio-addons/build-env/tree/v0.3.6
