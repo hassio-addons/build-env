@@ -30,6 +30,7 @@ readonly EX_MULTISTAGE=13       # Dockerfile contains multiple stages
 readonly EX_NO_ARCHS=14         # No architectures to build
 readonly EX_NO_IMAGE_NAME=15    # Missing name of image to build
 readonly EX_NOT_EMPTY=16        # Workdirectory is not empty
+readonly EX_NOT_GIT=20          # This is not a Git repository
 readonly EX_PRIVILEGES=17       # Not running without --privileged
 readonly EX_SUPPORTED=18        # Requested build architecture is not supported
 readonly EX_VERSION=19          # Version not found and specified
