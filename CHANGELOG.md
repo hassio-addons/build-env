@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.3.5][v0.3.5] (2017-10-04)
+
+[Full Changelog][v0.3.4-v0.3.5]
+
+### Fixed
+
+- Quoting of label contents [#37][37]
+
 ## [v0.3.4][v0.3.4] (2017-09-26)
 
 [Full Changelog][v0.3.3-v0.3.4]
@@ -214,6 +222,7 @@ No unreleased changes yet.
 [33]: https://github.com/hassio-addons/build-env/pull/33
 [34]: https://github.com/hassio-addons/build-env/pull/34
 [35]: https://github.com/hassio-addons/build-env/pull/35
+[37]: https://github.com/hassio-addons/build-env/pull/37
 [4]: https://github.com/hassio-addons/build-env/pull/4
 [6]: https://github.com/hassio-addons/build-env/pull/6
 [8]: https://github.com/hassio-addons/build-env/pull/8
@@ -252,4 +261,6 @@ No unreleased changes yet.
 [v0.3.2]: https://github.com/hassio-addons/build-env/tree/v0.3.2
 [v0.3.3-v0.3.4]: https://github.com/hassio-addons/build-env/compare/v0.3.3...v0.3.4
 [v0.3.3]: https://github.com/hassio-addons/build-env/tree/v0.3.3
+[v0.3.4-v0.3.5]: https://github.com/hassio-addons/build-env/compare/v0.3.4...v0.3.5
 [v0.3.4]: https://github.com/hassio-addons/build-env/tree/v0.3.4
+[v0.3.5]: https://github.com/hassio-addons/build-env/tree/v0.3.5
