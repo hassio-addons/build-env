@@ -1278,13 +1278,13 @@ prepare_dockerfile() {
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.name"*
     ]]; then
-        labels+=("org.label-schema.name=${BUILD_NAME}")
+        labels+=("org.label-schema.name=\"${BUILD_NAME}\"")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.description"*
     ]]; then
-        labels+=("org.label-schema.description=${BUILD_DESCRIPTION}")
+        labels+=("org.label-schema.description=\"${BUILD_DESCRIPTION}\"")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
@@ -1296,31 +1296,31 @@ prepare_dockerfile() {
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vcs-url"*
     ]]; then
-        labels+=("org.label-schema.vcs-url=${BUILD_GIT_URL}")
+        labels+=("org.label-schema.vcs-url=\"${BUILD_GIT_URL}\"")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vcs-ref"*
     ]]; then
-        labels+=("org.label-schema.vcs-ref=${BUILD_REF}")
+        labels+=("org.label-schema.vcs-ref=\"${BUILD_REF}\"")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.vendor"*
     ]]; then
-        labels+=("org.label-schema.vendor=${BUILD_VENDOR}")
+        labels+=("org.label-schema.vendor=\"${BUILD_VENDOR}\"")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.usage"*
     ]]; then
-        labels+=("org.label-schema.usage=${BUILD_DOC_URL}")
+        labels+=("org.label-schema.usage=\"${BUILD_DOC_URL}\"")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"maintainer"*
     ]]; then
-        labels+=("maintainer=${BUILD_MAINTAINER}")
+        labels+=("maintainer=\"${BUILD_MAINTAINER}\"")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
@@ -1332,14 +1332,14 @@ prepare_dockerfile() {
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"org.label-schema.version"*
     ]]; then
-        labels+=("org.label-schema.version=${BUILD_VERSION}")
+        labels+=("org.label-schema.version=\"${BUILD_VERSION}\"")
     fi
 
     if [[
         "${BUILD_LABEL_OVERRIDE}" = true
         || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.version"*
     ]]; then
-        labels+=("io.hass.version=${BUILD_VERSION}")
+        labels+=("io.hass.version=\"${BUILD_VERSION}\"")
     fi
 
     if [[ "${BUILD_LABEL_OVERRIDE}" = true
