@@ -840,10 +840,10 @@ get_info_dockerfile() {
             EXISTING_LABELS+=("${label}")
 
             case ${label} in
-                org.label-schema.name)
+                org.label-schema.name|io.hass.name)
                     [[ -z "${BUILD_NAME:-}" ]] && BUILD_NAME="${value}"
                     ;;
-                org.label-schema.description)
+                org.label-schema.description|io.hass.description)
                     [[ -z "${BUILD_DESCRIPTION:-}" ]] \
                         && BUILD_DESCRIPTION="${value}"
                     ;;
@@ -1351,6 +1351,20 @@ prepare_dockerfile() {
             EXISTING_ARGS+=(BUILD_ARCH)
         fi
         labels+=("io.hass.arch=\${BUILD_ARCH}")
+    fi
+
+    if [[
+        "${BUILD_LABEL_OVERRIDE}" = true
+        || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.name"*
+    ]]; then
+        labels+=("io.hass.name=\"${BUILD_NAME}\"")
+    fi
+
+    if [[
+        "${BUILD_LABEL_OVERRIDE}" = true
+        || ! "${EXISTING_LABELS[*]:-}" = *"io.hass.description"*
+    ]]; then
+        labels+=("io.hass.description=\"${BUILD_DESCRIPTION}\"")
     fi
 
     if [[ ! -z "${labels[*]:-}" ]]; then
