@@ -2,7 +2,8 @@ FROM ubuntu:16.04
 
 # Environment variables
 ENV \
-    LANG="en_US.UTF-8"
+    LANG="en_US.UTF-8" \
+    DEBIAN_FRONTEND="noninteractive"
 
 # Volume
 VOLUME /var/lib/docker
