@@ -34,6 +34,7 @@ readonly EX_NOT_GIT=20          # This is not a Git repository
 readonly EX_PRIVILEGES=17       # Not running without --privileged
 readonly EX_SUPPORTED=18        # Requested build architecture is not supported
 readonly EX_VERSION=19          # Version not found and specified
+readonly EX_DOCKER_SOCKET=20    # Could not use passed in Docker socket
 
 # Constants
 readonly DOCKER_PIDFILE='/var/run/docker.pid' # Docker daemon PID file
@@ -66,6 +67,7 @@ declare BUILD_URL
 declare BUILD_VENDOR
 declare BUILD_VERSION
 declare DOCKER_CACHE
+declare DOCKER_PASSED
 declare DOCKER_PUSH
 declare DOCKER_SQUASH
 declare DOCKER_TAG_LATEST
@@ -81,6 +83,7 @@ BUILD_LABEL_OVERRIDE=false
 BUILD_PARALLEL=false
 BUILD_TARGET=$(pwd)
 DOCKER_CACHE=true
+DOCKER_PASSED=false
 DOCKER_PID=9999999999
 DOCKER_PUSH=false
 DOCKER_TAG_LATEST=false
@@ -346,8 +349,8 @@ cleanup_on_exit() {
     # Prevent double cleanup. Thx Bash :)
     if [[ "${TRAPPED}" != true ]]; then
         TRAPPED=true
-        docker_stop_daemon
         docker_disable_crosscompile
+        [[ "${DOCKER_PASSED}" = "false" ]] && docker_stop_daemon
         [[ "${exit_code}" -ne 0 ]] \
             && display_error_message "Build failed, exited with errors"
     fi
@@ -568,6 +571,20 @@ docker_push() {
 docker_start_daemon() {
     local time_start
     local time_end
+
+    if [[ -S "/var/run/docker.sock" ]]; then
+        display_status_message 'Docker seems to be passed into the build env'
+
+        DOCKER_PASSED=true
+        if docker info >/dev/null 2>&1; then
+            display_status_message 'Docker is alive!'
+            return "${EX_OK}"
+        fi
+
+        display_error_message \
+            'Could not use passed in Docker socket.' \
+            "${EX_DOCKER_SOCKET}"
+    fi
 
     display_status_message 'Starting the Docker daemon'
 
