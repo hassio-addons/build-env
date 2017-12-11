@@ -35,6 +35,7 @@ readonly EX_PRIVILEGES=17       # Not running without --privileged
 readonly EX_SUPPORTED=18        # Requested build architecture is not supported
 readonly EX_VERSION=19          # Version not found and specified
 readonly EX_DOCKER_SOCKET=20    # Could not use passed in Docker socket
+readonly EX_EXPERIMENTAL=21     # Experimental features not enabled
 
 # Constants
 readonly DOCKER_PIDFILE='/var/run/docker.pid' # Docker daemon PID file
@@ -67,6 +68,7 @@ declare BUILD_URL
 declare BUILD_VENDOR
 declare BUILD_VERSION
 declare DOCKER_CACHE
+declare DOCKER_EXPERIMENTAL
 declare DOCKER_PASSED
 declare DOCKER_PUSH
 declare DOCKER_SQUASH
@@ -83,6 +85,7 @@ BUILD_LABEL_OVERRIDE=false
 BUILD_PARALLEL=false
 BUILD_TARGET=$(pwd)
 DOCKER_CACHE=true
+DOCKER_EXPERIMENTAL=true
 DOCKER_PASSED=false
 DOCKER_PID=9999999999
 DOCKER_PUSH=false
@@ -549,6 +552,11 @@ docker_start_daemon() {
         DOCKER_PASSED=true
         if docker info >/dev/null 2>&1; then
             display_status_message 'Docker is alive!'
+
+            # Check if experimental support is enabled
+            [[ $(docker version -f '{{.Server.Experimental}}') = "false" ]] \
+                && DOCKER_EXPERIMENTAL=false
+
             return "${EX_OK}"
         fi
 
@@ -1100,6 +1108,12 @@ preflight_checks() {
             "${EX_PRIVILEGES}"
     fi
 
+    # Squashed version requested, but Docker server doesn't support it?
+    [[ "${DOCKER_SQUASH}" = true && "${DOCKER_EXPERIMENTAL}" = false ]] \
+        && display_error_message \
+            'Squashing images is only supported on a Docker daemon with experimental features enabled' \
+            "${EX_EXPERIMENTAL}"
+
     # Do we have anything to build?
     [[ ${#BUILD_ARCHS[@]} -eq 0 ]] && [[ "${BUILD_ALL}" = false ]] \
         && display_help "${EX_NO_ARCHS}" 'No architectures to build'
@@ -1391,14 +1405,14 @@ main() {
     get_info_git
     get_info_dockerfile
 
+    # Docker daemon startup
+    docker_start_daemon
+    docker_enable_crosscompile
+
     # Getting ready
     preflight_checks
     prepare_defaults
     prepare_dockerfile
-
-    # Docker daemon startup
-    docker_start_daemon
-    docker_enable_crosscompile
 
     # Cache warming
     display_status_message 'Warming up cache for all requested architectures'
