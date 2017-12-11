@@ -26,11 +26,18 @@ need for "large" and complicated Bash scripts (as provided by Home Assistant).
 
 ```bash
 docker run --rm --privileged \
+    -v /var/run/docker.sock:/var/run/docker.sock \
     -v ~/.docker:/root/.docker \
     -v "$(pwd)":/docker \
     hassioaddons/build-env:latest \
     [options]
 ```
+
+Adding `-v /var/run/docker.sock:/var/run/docker.sock` shares you locally
+running Docker instance with the build container. This has a little build
+speed advantage, but at the same time, it might lead to compatibility issues.
+This line may be omitted, if so, the build environment will spin up its
+own (compatible) Docker instance.
 
 Adding `-v ~/.docker:/root/.docker` shares your Docker hub credentials with
 the built environment. This line may be omitted in case you don't want to
