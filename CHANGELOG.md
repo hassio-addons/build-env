@@ -9,14 +9,35 @@ and this project adheres to [Semantic Versioning][semantic-versioning].
 
 No unreleased changes yet.
 
+## [v0.4.0][v0.4.0] (2017-12-11)
+
+[Full Changelog][v0.3.6-v0.4.0]
+
+### Added
+
+- Adds support for new Hass.io Docker labels #41
+- Adds possibility to pass in existing Docker socket into the build environment #39
+- Adds squash support detection #46
+- Adds option to use different image tag as cache source #42
+- Adds documentation about passing in a Docker socket #45
+
+### Changed
+
+- Sets DEBIAN_FRONTEND to non-interactive for a cleaner build output
+- Improved CodeClimate configuration
+- Adds binfmt initialization using qemu-user-static container #43 #47
+- Updated README to match the style used everywhere
+- Updated issue links in the CHANGELOG
+- Promoted project stage from "Experimental" to "Development"
+
 ## [v0.3.6][v0.3.6] (2017-10-04)
 
 [Full Changelog][v0.3.5-v0.3.6]
 
 ### Fixed
 
-- Added missing exit code definition [#38][38]
-- Fixes issue with --git being enabled all the time [#38][38]
+- Added missing exit code definition #38
+- Fixes issue with --git being enabled all the time #38
 
 ## [v0.3.5][v0.3.5] (2017-10-04)
 
@@ -24,7 +45,7 @@ No unreleased changes yet.
 
 ### Fixed
 
-- Quoting of label contents [#37][37]
+- Quoting of label contents #37
 
 ## [v0.3.4][v0.3.4] (2017-09-26)
 
@@ -32,7 +53,7 @@ No unreleased changes yet.
 
 ### Removed
 
-- Removed Git master branch detection. [#35][35]
+- Removed Git master branch detection. #35
 
 ## [v0.3.3][v0.3.3] (2017-09-26)
 
@@ -40,13 +61,13 @@ No unreleased changes yet.
 
 ### Changed
 
-- Updated examples in README [#34][34]
+- Updated examples in README #34
 
 ### Fixed
 
-- Fixes issue with pushing images to Docker Hub [#34][34]
-- Fixes setting default squash state, in case of a missing build.json [#34][34]
-- Fixes unbound variable error when building without a build.json file [#34][34]
+- Fixes issue with pushing images to Docker Hub #34
+- Fixes setting default squash state, in case of a missing build.json #34
+- Fixes unbound variable error when building without a build.json file #34
 
 ## [v0.3.2][v0.3.2] (2017-09-26)
 
@@ -54,7 +75,7 @@ No unreleased changes yet.
 
 ### Fixed
 
-- Fixed squash, true/false mixup [#33][33]
+- Fixed squash, true/false mixup #33
 
 ## [v0.3.1][v0.3.1] (2017-09-26)
 
@@ -62,7 +83,7 @@ No unreleased changes yet.
 
 ### Fixed
 
-- Fixes unbound variable error [#32][32]
+- Fixes unbound variable error #32
 
 ## [v0.3.0][v0.3.0] (2017-09-26)
 
@@ -70,12 +91,12 @@ No unreleased changes yet.
 
 ### Added
 
-- Automatically disable caching when using squash [#31][31]
+- Automatically disable caching when using squash #31
 
 ### Changed
 
-- Changed squash option to be disabled by default [#31][31]
-- Changed parallel build option to be disabled by default [#31][31]
+- Changed squash option to be disabled by default #31
+- Changed parallel build option to be disabled by default #31
 
 ## [v0.2.1][v0.2.1] (2017-09-24)
 
@@ -83,11 +104,11 @@ No unreleased changes yet.
 
 ### Changed
 
-- Moved buildscript into a better place [#29][29]
+- Moved buildscript into a better place #29
 
 ### Fixed
 
-- Issue with CircleCI missing releases [#28][28]
+- Issue with CircleCI missing releases #28
 
 ## [v0.2.0][v0.2.0] (2017-09-24)
 
@@ -95,17 +116,17 @@ No unreleased changes yet.
 
 ### Added
 
-- Reverted most of the changes in v0.1.0 [#27][27]
-- Correct handling for failing background jobs [#27][27]
+- Reverted most of the changes in v0.1.0 #27
+- Correct handling for failing background jobs #27
 
 ### Changed
 
-- Improved Git logic [#27][27]
+- Improved Git logic #27
 
 ### Removed
 
-- Removed support for other build types [#27][27]
-- Removed backward compatibility Hassio 0.63 and lower [#27][27]
+- Removed support for other build types #27
+- Removed backward compatibility Hassio 0.63 and lower #27
 
 ## [v0.1.1][v0.1.1] (2017-09-24)
 
@@ -113,7 +134,7 @@ No unreleased changes yet.
 
 ### Removed
 
-- Removes privileged check [#25][25]
+- Removes privileged check #25
 
 ## [v0.1.0][v0.1.0] (2017-09-24)
 
@@ -121,7 +142,7 @@ No unreleased changes yet.
 
 ### Changed
 
-- Simplification of the build enviroment [#23][23]
+- Simplification of the build enviroment #23
 
 ## [v0.0.8][v0.0.8] (2017-09-23)
 
@@ -129,15 +150,15 @@ No unreleased changes yet.
 
 ### Added
 
-- Hass.io 0.64 compatibility [#21][21]
+- Hass.io 0.64 compatibility #21
 
 ### Fixed
 
-- Issues with non-parallel building [#20][20]
+- Issues with non-parallel building #20
 
 ## Removed
 
-- Removed support for suggested `hassio.json` file [#21][21]
+- Removed support for suggested `hassio.json` file #21
 
 ## [v0.0.7][v0.0.7] (2017-09-21)
 
@@ -145,7 +166,7 @@ No unreleased changes yet.
 
 ### Fixed
 
-- Fixes CircleCI when building on a release [#18][18]
+- Fixes CircleCI when building on a release #18
 
 ## [v0.0.6][v0.0.6] (2017-09-21)
 
@@ -153,11 +174,11 @@ No unreleased changes yet.
 
 ### Added
 
-- Added support for additional Docker build arguments [#15][15]
+- Added support for additional Docker build arguments #15
 
 ### Changed
 
-- CicleCI deploy on release [#16][16]
+- CicleCI deploy on release #16
 
 ## [v0.0.5][v0.0.5] (2017-09-18)
 
@@ -165,8 +186,8 @@ No unreleased changes yet.
 
 ### Fixed
 
-- Fixes issue with parsing ARG default values from Dockerfiles [#12][12]
-- Fixes issues and typo's with docker cache warmup [#13][13]
+- Fixes issue with parsing ARG default values from Dockerfiles #12
+- Fixes issues and typo's with docker cache warmup #13
 
 ## [v0.0.4][v0.0.4] (2017-09-17)
 
@@ -174,13 +195,13 @@ No unreleased changes yet.
 
 ### Added
 
-- Continuous delivery via CircleCI [#8][8]
-- Added to CircleCI dependencies [#9][9]
-- Markdown linting via CodeClimate [#10][10]
+- Continuous delivery via CircleCI #8
+- Added to CircleCI dependencies #9
+- Markdown linting via CodeClimate #10
 
 ### Fixed
 
-- Several Markdown improvements [#10][10]
+- Several Markdown improvements #10
 
 ## [v0.0.3][v0.0.3] (2017-09-17)
 
@@ -188,7 +209,7 @@ No unreleased changes yet.
 
 ### Fixed
 
-- Fixes GIT version tag detection issue [#6][6]
+- Fixes GIT version tag detection issue #6
 
 ## [v0.0.2][v0.0.2] (2017-09-16)
 
@@ -196,14 +217,14 @@ No unreleased changes yet.
 
 ### Added
 
-- CodeClimate to ensure code quality [#2][2]
-- CircleCI as a continuous integration system [#3][3]
+- CodeClimate to ensure code quality #2
+- CircleCI as a continuous integration system #3
 
 ### Fixed
 
 - Fixed error in one of the examples
 - Some small Markdown fixes to the documentation
-- Fixed a couple of possible unbound variables and defaults [#4][4]
+- Fixed a couple of possible unbound variables and defaults #4
 
 ## [v0.0.1] (2017-09-15)
 
@@ -211,32 +232,6 @@ No unreleased changes yet.
 
 - Initial version, first release.
 
-[10]: https://github.com/hassio-addons/build-env/pull/10
-[12]: https://github.com/hassio-addons/build-env/pull/12
-[13]: https://github.com/hassio-addons/build-env/pull/13
-[15]: https://github.com/hassio-addons/build-env/pull/15
-[16]: https://github.com/hassio-addons/build-env/pull/16
-[18]: https://github.com/hassio-addons/build-env/pull/18
-[2]: https://github.com/hassio-addons/build-env/pull/2
-[20]: https://github.com/hassio-addons/build-env/pull/20
-[21]: https://github.com/hassio-addons/build-env/pull/21
-[23]: https://github.com/hassio-addons/build-env/pull/23
-[25]: https://github.com/hassio-addons/build-env/pull/25
-[27]: https://github.com/hassio-addons/build-env/pull/27
-[28]: https://github.com/hassio-addons/build-env/pull/28
-[29]: https://github.com/hassio-addons/build-env/pull/29
-[3]: https://github.com/hassio-addons/build-env/pull/3
-[31]: https://github.com/hassio-addons/build-env/pull/31
-[32]: https://github.com/hassio-addons/build-env/pull/32
-[33]: https://github.com/hassio-addons/build-env/pull/33
-[34]: https://github.com/hassio-addons/build-env/pull/34
-[35]: https://github.com/hassio-addons/build-env/pull/35
-[37]: https://github.com/hassio-addons/build-env/pull/37
-[38]: https://github.com/hassio-addons/build-env/pull/38
-[4]: https://github.com/hassio-addons/build-env/pull/4
-[6]: https://github.com/hassio-addons/build-env/pull/6
-[8]: https://github.com/hassio-addons/build-env/pull/8
-[9]: https://github.com/hassio-addons/build-env/pull/9
 [keep-a-changelog]: http://keepachangelog.com/en/1.0.0/
 [semantic-versioning]: http://semver.org/spec/v2.0.0.html
 [v0.0.1-v0.0.2]: https://github.com/hassio-addons/build-env/compare/v0.0.1...v0.0.2
@@ -275,4 +270,6 @@ No unreleased changes yet.
 [v0.3.4]: https://github.com/hassio-addons/build-env/tree/v0.3.4
 [v0.3.5-v0.3.6]: https://github.com/hassio-addons/build-env/compare/v0.3.5...v0.3.6
 [v0.3.5]: https://github.com/hassio-addons/build-env/tree/v0.3.5
+[v0.3.6-v0.4.0]: https://github.com/hassio-addons/build-env/compare/v0.3.6...v0.4.0
 [v0.3.6]: https://github.com/hassio-addons/build-env/tree/v0.3.6
+[v0.4.0]: https://github.com/hassio-addons/build-env/tree/v0.4.0
