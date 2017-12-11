@@ -1,22 +1,33 @@
 # Community Hass.io Add-ons: Build Environment
 
+[![GitHub Release][releases-shield]][releases]
 ![Project Stage][project-stage-shield]
-![Maintenance][maintenance-shield]
-![Awesome][awesome-shield]
+![Project Maintenance][maintenance-shield]
+[![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE.md)
 
-[![Docker Version][version-shield]][microbadger]
-[![Docker Layers][layers-shield]][microbadger]
-[![Docker Pulls][pulls-shield]][dockerhub]
-[![Code Climate][codeclimate-shield]][codeclimate]
 [![CircleCI][circleci-shield]][circleci]
+[![Code Climate][codeclimate-shield]][codeclimate]
+[![Bountysource][bountysource-shield]][bountysource]
+[![Discord][discord-shield]][discord]
+[![Community Forum][forum-shield]][forum]
+
+[![Patreon][patreon-shield]][patreon]
+[![PayPal][paypal-shield]][paypal]
+[![Bitcoin][bitcoin-shield]][bitcoin]
 
 This is a build environment for building Hass.io Docker images and is
 capable of building Docker images for multiple architectures.
 
-Note: _This build environment is **HIGHLY EXPERIMENTAL**! It still needs
+Note: _This build environment is under **DEVELOPMENT**! It still needs
 a lot of testing, and the documentation is far from complete. Use at your
 own risk!_
+
+## Docker status
+
+[![Docker Version][version-shield]][microbadger]
+[![Docker Layers][layers-shield]][microbadger]
+[![Docker Pulls][pulls-shield]][dockerhub]
 
 ## Usage
 
@@ -303,14 +314,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-[awesome-shield]: https://img.shields.io/badge/awesome%3F-yes-brightgreen.svg
+[bitcoin-shield]: https://img.shields.io/badge/donate-bitcoin-blue.svg
+[bitcoin]: https://blockchain.info/payment_request?address=3GVzgN6NpVtfXnyg5dQnaujtqVTEDBCtAH
+[bountysource-shield]: https://img.shields.io/bountysource/team/hassio-addons/activity.svg
+[bountysource]: https://www.bountysource.com/teams/hassio-addons/issues
 [circleci-shield]: https://img.shields.io/circleci/project/github/hassio-addons/build-env.svg
 [circleci]: https://circleci.com/gh/hassio-addons/build-env
-[codeclimate-shield]: https://img.shields.io/codeclimate/github/hassio-addons/build-env.svg
+[codeclimate-shield]: https://img.shields.io/badge/code%20climate-protected-brightgreen.svg
 [codeclimate]: https://codeclimate.com/github/hassio-addons/build-env
+[commits-shield]: https://img.shields.io/github/commit-activity/y/hassio-addons/build-env.svg
+[commits]: https://github.com/hassio-addons/build-env/commits/master
 [contributors]: https://github.com/hassio-addons/build-env/graphs/contributors
+[discord-shield]: https://img.shields.io/discord/330944238910963714.svg
+[discord]: https://discord.gg/c5DvZ4e
 [discord]: https://discord.gg/c5DvZ4e
 [dockerhub]: https://hub.docker.com/r/hassioaddons/build-env
+[forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg
+[forum]: https://community.home-assistant.io/?u=frenck
 [forums]: https://community.home-assistant.io/t/repository-community-hass-io-add-ons/24705?u=frenck
 [frenck]: https://github.com/frenck
 [issue]: https://github.com/hassio-addons/build-env/issues
@@ -319,9 +339,15 @@ SOFTWARE.
 [license-shield]: https://img.shields.io/github/license/hassio-addons/build-env.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2017.svg
 [microbadger]: https://microbadger.com/images/hassioaddons/build-env
-[project-stage-shield]: https://img.shields.io/badge/Project%20Stage-Experimental-yellow.svg
+[patreon-shield]: https://img.shields.io/badge/donate-patreon-blue.svg
+[patreon]: https://www.patreon.com/frenck
+[paypal-shield]: https://img.shields.io/badge/donate-paypal-blue.svg
+[paypal]: https://www.paypal.me/FranckNijhof
+[project-stage-shield]: https://img.shields.io/badge/project%20stage-development-yellowgreen.svg
 [pulls-shield]: https://img.shields.io/docker/pulls/hassioaddons/build-env.svg
 [reddit]: https://reddit.com/r/homeassistant
+[releases-shield]: https://img.shields.io/github/release/hassio-addons/build-env.svg
+[releases]: https://github.com/hassio-addons/build-env/releases
 [repository]: https://github.com/hassio-addons/repository
 [semver]: http://semver.org/spec/v2.0.0.html
 [version-shield]: https://images.microbadger.com/badges/version/hassioaddons/build-env.svg
