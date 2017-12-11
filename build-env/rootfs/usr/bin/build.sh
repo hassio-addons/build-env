@@ -68,6 +68,7 @@ declare BUILD_URL
 declare BUILD_VENDOR
 declare BUILD_VERSION
 declare DOCKER_CACHE
+declare DOCKER_CACHE_TAG
 declare DOCKER_EXPERIMENTAL
 declare DOCKER_PASSED
 declare DOCKER_PUSH
@@ -85,6 +86,7 @@ BUILD_LABEL_OVERRIDE=false
 BUILD_PARALLEL=false
 BUILD_TARGET=$(pwd)
 DOCKER_CACHE=true
+DOCKER_CACHE_TAG='latest'
 DOCKER_EXPERIMENTAL=true
 DOCKER_PASSED=false
 DOCKER_PID=9999999999
@@ -273,6 +275,10 @@ Options:
     --arg <key> <value>
         Pass additional build arguments into the Docker build.
         This option can be repeated for multiple key/value pairs.
+
+    --cache-tag <tag>
+        Specify the tag to use as cache image version.
+        Defaults to 'latest'.
 
     -c, --no-cache
         Disable build from cache.
@@ -675,7 +681,7 @@ docker_warmup_cache() {
     image="${BUILD_IMAGE//\{arch\}/${arch}}"
     display_status_message 'Warming up cache'
 
-    if ! docker pull "${image}:latest" 2>&1; then
+    if ! docker pull "${image}:${DOCKER_CACHE_TAG}" 2>&1; then
         display_notice_message 'Cache warmup failed, continuing without it'
         DOCKER_CACHE=false
     fi
@@ -1014,6 +1020,10 @@ parse_cli_arguments() {
                 ;;
             -p|--push)
                 DOCKER_PUSH=true
+                ;;
+            --cache-tag)
+                DOCKER_CACHE_TAG="${2}"
+                shift
                 ;;
             -n|--no-cache)
                 DOCKER_CACHE=false

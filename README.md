@@ -137,6 +137,10 @@ Options:
         Pass additional build arguments into the Docker build.
         This option can be repeated for multiple key/value pairs.
 
+    --cache-tag <tag>
+        Specify the tag to use as cache image version.
+        Defaults to 'latest'.
+
     -c, --no-cache
         Disable build from cache.
 
