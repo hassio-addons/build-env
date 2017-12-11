@@ -47,7 +47,6 @@ RUN \
     \
     && apt-get install -y --no-install-recommends \
         docker-ce \
-        qemu-user-static \
         binfmt-support \
     \
     && pip3 install \

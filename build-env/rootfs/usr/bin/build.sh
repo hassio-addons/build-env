@@ -350,10 +350,8 @@ cleanup_on_exit() {
     local exit_code=${1}
 
     # Prevent double cleanup. Thx Bash :)
-    if [[ "${TRAPPED}" != true ]]; then
+    if [[ "${TRAPPED}" != true && "${DOCKER_PASSED}" = "false" ]]; then
         TRAPPED=true
-        docker_disable_crosscompile
-        [[ "${DOCKER_PASSED}" = "false" ]] && docker_stop_daemon
         [[ "${exit_code}" -ne 0 ]] \
             && display_error_message "Build failed, exited with errors"
     fi
@@ -479,31 +477,6 @@ docker_build() {
 }
 
 # ------------------------------------------------------------------------------
-# Disables Docker's cross compiler features (qemu)
-#
-# Arguments:
-#   None
-# Returns:
-#   Exit code
-# ------------------------------------------------------------------------------
-docker_disable_crosscompile() {
-    display_status_message 'Disabling cross compile features'
-
-    if [[ -f /proc/sys/fs/binfmt_misc/status ]]; then
-        umount binfmt_misc || display_error_message \
-            'Failed disabling cross compile features!' "${EX_CROSS}"
-    fi
-
-    (
-        update-binfmts --disable qemu-arm && \
-        update-binfmts --disable qemu-aarch64
-    ) || display_error_message 'Failed disabling cross compile features!' \
-        "${EX_CROSS}"
-
-    return "${EX_OK}"
-}
-
-# ------------------------------------------------------------------------------
 # Enables Docker's cross compiler features (qemu)
 #
 # Arguments:
@@ -513,12 +486,10 @@ docker_disable_crosscompile() {
 # ------------------------------------------------------------------------------
 docker_enable_crosscompile() {
     display_status_message 'Enabling cross compile features'
-    (
-        mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc && \
-        update-binfmts --enable qemu-arm && \
-        update-binfmts --enable qemu-aarch64
-    ) || display_error_message 'Failed enabling cross compile features!' \
-        "${EX_CROSS}"
+
+    docker run --rm --privileged hassioaddons/qemu-user-static:latest \
+        || display_error_message 'Failed enabling cross compile features!' \
+            "${EX_CROSS}"
 
     return "${EX_OK}"
 }
@@ -1435,8 +1406,8 @@ main() {
     get_info_dockerfile
 
     # Docker daemon startup
-    docker_enable_crosscompile
     docker_start_daemon
+    docker_enable_crosscompile
 
     # Getting ready
     preflight_checks
