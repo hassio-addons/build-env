@@ -337,7 +337,7 @@ SOFTWARE.
 [keepchangelog]: http://keepachangelog.com/en/1.0.0/
 [layers-shield]: https://images.microbadger.com/badges/image/hassioaddons/build-env.svg
 [license-shield]: https://img.shields.io/github/license/hassio-addons/build-env.svg
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2017.svg
+[maintenance-shield]: https://img.shields.io/maintenance/yes/2018.svg
 [microbadger]: https://microbadger.com/images/hassioaddons/build-env
 [patreon-shield]: https://img.shields.io/badge/donate-patreon-blue.svg
 [patreon]: https://www.patreon.com/frenck
