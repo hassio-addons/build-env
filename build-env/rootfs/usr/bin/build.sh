@@ -687,7 +687,7 @@ docker_warmup_cache() {
     local arch=${1}
     local image
 
-    image="${BUILD_CACHE_FROM//\{arch\}/${arch}}"
+    image="${DOCKER_CACHE_FROM//\{arch\}/${arch}}"
     display_status_message 'Warming up cache'
 
     if ! docker pull "${image}:${DOCKER_CACHE_TAG}" 2>&1; then
