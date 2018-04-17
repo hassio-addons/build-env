@@ -417,7 +417,7 @@ docker_build() {
 
     dockerfile="${DOCKERFILE//\{arch\}/${arch}}"
     image="${BUILD_IMAGE//\{arch\}/${arch}}"
-    cache="${DOCKER_CACHE_FROM}//\{arch\}/${arch}}"
+    cache="${DOCKER_CACHE_FROM//\{arch\}/${arch}}"
     build_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
     build_args+=(--pull)
