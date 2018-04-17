@@ -68,6 +68,7 @@ declare BUILD_URL
 declare BUILD_VENDOR
 declare BUILD_VERSION
 declare DOCKER_CACHE
+declare DOCKER_CACHE_FROM
 declare DOCKER_CACHE_TAG
 declare DOCKER_EXPERIMENTAL
 declare DOCKER_PASSED
@@ -280,6 +281,12 @@ Options:
         Specify the tag to use as cache image version.
         Defaults to 'latest'.
 
+    --cache-from <image>
+        Use a different image as a caching source.
+        Default to the name of the output image.
+        Use '{arch}' as an placeholder for the architecture name.
+        e.g., --cache-from "registry.example.com/myname/{arch}-myaddon"
+
     -c, --no-cache
         Disable build from cache.
 
@@ -401,6 +408,7 @@ docker_build() {
     local -a build_args
     local arch=${1}
     local build_date
+    local cache
     local dockerfile
     local from
     local image
@@ -409,6 +417,7 @@ docker_build() {
 
     dockerfile="${DOCKERFILE//\{arch\}/${arch}}"
     image="${BUILD_IMAGE//\{arch\}/${arch}}"
+    cache="${DOCKER_CACHE_FROM}//\{arch\}/${arch}}"
     build_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
     build_args+=(--pull)
@@ -424,7 +433,7 @@ docker_build() {
     fi
 
     if [[ "${DOCKER_CACHE}" = true ]]; then
-        build_args+=(--cache-from "${image}:latest")
+        build_args+=(--cache-from "${cache}:${DOCKER_CACHE_TAG}")
     else
         build_args+=(--no-cache)
     fi
@@ -678,7 +687,7 @@ docker_warmup_cache() {
     local arch=${1}
     local image
 
-    image="${BUILD_IMAGE//\{arch\}/${arch}}"
+    image="${BUILD_CACHE_FROM//\{arch\}/${arch}}"
     display_status_message 'Warming up cache'
 
     if ! docker pull "${image}:${DOCKER_CACHE_TAG}" 2>&1; then
@@ -1025,6 +1034,10 @@ parse_cli_arguments() {
                 DOCKER_CACHE_TAG="${2}"
                 shift
                 ;;
+            --cache-from)
+                DOCKER_CACHE_FROM="${2}"
+                shift
+                ;;
             -n|--no-cache)
                 DOCKER_CACHE=false
                 ;;
@@ -1251,6 +1264,8 @@ prepare_defaults() {
         DOCKER_CACHE=false
     fi
 
+    [[ -z "${DOCKER_CACHE_FROM:-}" ]] \
+        && DOCKER_CACHE_FROM="${BUILD_IMAGE}"
 
     return "${EX_OK}"
 }
