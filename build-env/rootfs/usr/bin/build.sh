@@ -36,6 +36,7 @@ readonly EX_SUPPORTED=18        # Requested build architecture is not supported
 readonly EX_VERSION=19          # Version not found and specified
 readonly EX_DOCKER_SOCKET=20    # Could not use passed in Docker socket
 readonly EX_EXPERIMENTAL=21     # Experimental features not enabled
+readonly EX_LOGIN=22            # Failed Docker Hub authentication
 
 # Constants
 readonly DOCKER_PIDFILE='/var/run/docker.pid' # Docker daemon PID file
@@ -71,7 +72,9 @@ declare DOCKER_CACHE
 declare DOCKER_CACHE_FROM
 declare DOCKER_CACHE_TAG
 declare DOCKER_EXPERIMENTAL
+declare DOCKER_LOGIN
 declare DOCKER_PASSED
+declare DOCKER_PASSWORD
 declare DOCKER_PUSH
 declare DOCKER_SQUASH
 declare DOCKER_TAG_LATEST
@@ -270,6 +273,12 @@ Options:
 
     -p, --push
         Upload the resulting build to Docker hub.
+
+    --login <username>
+        Login to Docker Hub with the given username, prior to push
+
+    --password <password>
+        Login to Docker Hub using the give password, prior to push
 
     ------ Build options ------
 
@@ -505,6 +514,28 @@ docker_enable_crosscompile() {
     docker run --rm --privileged hassioaddons/qemu-user-static:latest \
         || display_error_message 'Failed enabling cross compile features!' \
             "${EX_CROSS}"
+
+    return "${EX_OK}"
+}
+
+# ------------------------------------------------------------------------------
+# Authenticates with Docker Hub
+#
+# Arguments:
+#   None
+# Returns:
+#   Exit code
+# ------------------------------------------------------------------------------
+
+docker_login() {
+    [[ -z "${DOCKER_LOGIN:-}" || -z "${DOCKER_PASSWORD:-}" ]] \
+        && return "${EX_OK}"
+
+    display_status_message 'Authenticating with Docker Hub'
+
+    docker login --username "${DOCKER_LOGIN}" --password "${DOCKER_PASSWORD}" \
+        || display_error_message 'Failed authentication with Docker Hub' \
+            "${EX_LOGIN}"
 
     return "${EX_OK}"
 }
@@ -1030,6 +1061,14 @@ parse_cli_arguments() {
             -p|--push)
                 DOCKER_PUSH=true
                 ;;
+            --login)
+                DOCKER_LOGIN="${2}"
+                shift
+                ;;
+            --password)
+                DOCKER_PASSWORD="${2}"
+                shift
+                ;;
             --cache-tag)
                 DOCKER_CACHE_TAG="${2}"
                 shift
@@ -1481,6 +1520,7 @@ main() {
 
     # Push it
     if [[ "${DOCKER_PUSH}" = true ]]; then
+        docker_login
         display_status_message 'Pushing all Docker images'
         background_jobs=()
         for arch in "${BUILD_ARCHS[@]}"; do
