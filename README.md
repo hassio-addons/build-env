@@ -162,6 +162,12 @@ Options:
         Specify the tag to use as cache image version.
         Defaults to 'latest'.
 
+    --cache-from <image>
+        Use a different image as a caching source.
+        Default to the name of the output image.
+        Use '{arch}' as an placeholder for the architecture name.
+        e.g., --cache-from "registry.example.com/myname/{arch}-myaddon"
+
     -c, --no-cache
         Disable build from cache.
 
@@ -286,7 +292,7 @@ The original setup of this repository is by [Franck Nijhof][frenck].
 For a full list of all authors and contributors,
 check [the contributor's page][contributors].
 
-## We've got some Hass.io add-ons for you
+## We have got some Hass.io add-ons for you
 
 Want some more functionality to your Hass.io Home Assistant instance?
 
@@ -341,7 +347,7 @@ SOFTWARE.
 [keepchangelog]: http://keepachangelog.com/en/1.0.0/
 [layers-shield]: https://images.microbadger.com/badges/image/hassioaddons/build-env.svg
 [license-shield]: https://img.shields.io/github/license/hassio-addons/build-env.svg
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2017.svg
+[maintenance-shield]: https://img.shields.io/maintenance/yes/2018.svg
 [microbadger]: https://microbadger.com/images/hassioaddons/build-env
 [patreon-shield]: https://img.shields.io/badge/donate-patreon-blue.svg
 [patreon]: https://www.patreon.com/frenck

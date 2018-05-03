@@ -36,6 +36,7 @@ readonly EX_SUPPORTED=18        # Requested build architecture is not supported
 readonly EX_VERSION=19          # Version not found and specified
 readonly EX_DOCKER_SOCKET=20    # Could not use passed in Docker socket
 readonly EX_EXPERIMENTAL=21     # Experimental features not enabled
+readonly EX_LOGIN=22            # Failed Docker Hub authentication
 
 # Constants
 readonly DOCKER_PIDFILE='/var/run/docker.pid' # Docker daemon PID file
@@ -68,9 +69,12 @@ declare BUILD_URL
 declare BUILD_VENDOR
 declare BUILD_VERSION
 declare DOCKER_CACHE
+declare DOCKER_CACHE_FROM
 declare DOCKER_CACHE_TAG
 declare DOCKER_EXPERIMENTAL
+declare DOCKER_LOGIN
 declare DOCKER_PASSED
+declare DOCKER_PASSWORD
 declare DOCKER_PUSH
 declare DOCKER_SQUASH
 declare DOCKER_TAG_LATEST
@@ -270,6 +274,12 @@ Options:
     -p, --push
         Upload the resulting build to Docker hub.
 
+    --login <username>
+        Login to Docker Hub with the given username, prior to push
+
+    --password <password>
+        Login to Docker Hub using the give password, prior to push
+
     ------ Build options ------
 
     --arg <key> <value>
@@ -279,6 +289,12 @@ Options:
     --cache-tag <tag>
         Specify the tag to use as cache image version.
         Defaults to 'latest'.
+
+    --cache-from <image>
+        Use a different image as a caching source.
+        Default to the name of the output image.
+        Use '{arch}' as an placeholder for the architecture name.
+        e.g., --cache-from "registry.example.com/myname/{arch}-myaddon"
 
     -c, --no-cache
         Disable build from cache.
@@ -401,6 +417,7 @@ docker_build() {
     local -a build_args
     local arch=${1}
     local build_date
+    local cache
     local dockerfile
     local from
     local image
@@ -409,6 +426,7 @@ docker_build() {
 
     dockerfile="${DOCKERFILE//\{arch\}/${arch}}"
     image="${BUILD_IMAGE//\{arch\}/${arch}}"
+    cache="${DOCKER_CACHE_FROM//\{arch\}/${arch}}"
     build_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
     build_args+=(--pull)
@@ -424,7 +442,7 @@ docker_build() {
     fi
 
     if [[ "${DOCKER_CACHE}" = true ]]; then
-        build_args+=(--cache-from "${image}:latest")
+        build_args+=(--cache-from "${cache}:${DOCKER_CACHE_TAG}")
     else
         build_args+=(--no-cache)
     fi
@@ -496,6 +514,28 @@ docker_enable_crosscompile() {
     docker run --rm --privileged hassioaddons/qemu-user-static:latest \
         || display_error_message 'Failed enabling cross compile features!' \
             "${EX_CROSS}"
+
+    return "${EX_OK}"
+}
+
+# ------------------------------------------------------------------------------
+# Authenticates with Docker Hub
+#
+# Arguments:
+#   None
+# Returns:
+#   Exit code
+# ------------------------------------------------------------------------------
+
+docker_login() {
+    [[ -z "${DOCKER_LOGIN:-}" || -z "${DOCKER_PASSWORD:-}" ]] \
+        && return "${EX_OK}"
+
+    display_status_message 'Authenticating with Docker Hub'
+
+    docker login --username "${DOCKER_LOGIN}" --password "${DOCKER_PASSWORD}" \
+        || display_error_message 'Failed authentication with Docker Hub' \
+            "${EX_LOGIN}"
 
     return "${EX_OK}"
 }
@@ -678,7 +718,7 @@ docker_warmup_cache() {
     local arch=${1}
     local image
 
-    image="${BUILD_IMAGE//\{arch\}/${arch}}"
+    image="${DOCKER_CACHE_FROM//\{arch\}/${arch}}"
     display_status_message 'Warming up cache'
 
     if ! docker pull "${image}:${DOCKER_CACHE_TAG}" 2>&1; then
@@ -1021,8 +1061,20 @@ parse_cli_arguments() {
             -p|--push)
                 DOCKER_PUSH=true
                 ;;
+            --login)
+                DOCKER_LOGIN="${2}"
+                shift
+                ;;
+            --password)
+                DOCKER_PASSWORD="${2}"
+                shift
+                ;;
             --cache-tag)
                 DOCKER_CACHE_TAG="${2}"
+                shift
+                ;;
+            --cache-from)
+                DOCKER_CACHE_FROM="${2}"
                 shift
                 ;;
             -n|--no-cache)
@@ -1251,6 +1303,8 @@ prepare_defaults() {
         DOCKER_CACHE=false
     fi
 
+    [[ -z "${DOCKER_CACHE_FROM:-}" ]] \
+        && DOCKER_CACHE_FROM="${BUILD_IMAGE}"
 
     return "${EX_OK}"
 }
@@ -1466,6 +1520,7 @@ main() {
 
     # Push it
     if [[ "${DOCKER_PUSH}" = true ]]; then
+        docker_login
         display_status_message 'Pushing all Docker images'
         background_jobs=()
         for arch in "${BUILD_ARCHS[@]}"; do
