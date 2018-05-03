@@ -827,9 +827,6 @@ get_info_dockerfile() {
 
             if [[ ! -z "$value" ]]; then
                 case $arg in
-                    BUILD_FROM)
-                        [[ -z "${BUILD_FROM:-}" ]] && BUILD_FROM="${value}"
-                        ;;
                     BUILD_NAME)
                         [[ -z "${BUILD_NAME:-}" ]] && BUILD_NAME="${value}"
                         ;;
@@ -1197,16 +1194,6 @@ preflight_checks() {
         done
     fi
 
-    # Are we able to build it?
-    if [[ -z "${BUILD_FROM}" ]]; then
-        for arch in "${SUPPORTED_ARCHS[@]}"; do
-            [[ ! -z $arch && -z "${BUILD_ARCHS_FROM[${arch}]:-}" ]] \
-                && display_error_message \
-                    "Architucure ${arch}, is missing a image to build from" \
-                    "${EX_NO_FROM}"
-        done
-    fi
-
     # Multistage Dockerfile?
     [[ $(awk '/^FROM/{a++}END{print a}' <<< "${DOCKERFILE}") -le 1 ]] \
         || display_error_message 'The Dockerfile seems to be multistage!' \
@@ -1263,6 +1250,9 @@ prepare_defaults() {
         IFS=' '
         BUILD_ARCHS=(${SUPPORTED_ARCHS[*]});
     fi
+
+    [[ -z "${BUILD_FROM:-}" ]] \
+        && BUILD_FROM="homeassistant/{arch}-base"
 
     [[ -z "${DOCKER_SQUASH:-}" ]] \
         && DOCKER_SQUASH=false
