@@ -52,7 +52,10 @@ own (compatible) Docker instance.
 
 Adding `-v ~/.docker:/root/.docker` shares your Docker hub credentials with
 the built environment. This line may be omitted in case you don't want to
-push your image.
+push your image. Note that this requires that your credentials be stored in
+`docker/config.json` and will not work if you are using a 
+[`credsStore`](docker-credsstore) such as `osxkeychain`.
+
 
 Adding `-v "$(pwd)":/docker` shares your current working directory as the
 directory to start the build process from. This line MUST be omitted in case
@@ -334,6 +337,7 @@ SOFTWARE.
 [discord-shield]: https://img.shields.io/discord/330944238910963714.svg
 [discord]: https://discord.gg/c5DvZ4e
 [discord]: https://discord.gg/c5DvZ4e
+[docker-credsstore]: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 [dockerhub]: https://hub.docker.com/r/hassioaddons/build-env
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg
 [forum]: https://community.home-assistant.io/?u=frenck
