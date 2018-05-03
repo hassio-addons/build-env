@@ -152,6 +152,12 @@ Options:
     -p, --push
         Upload the resulting build to Docker hub.
 
+    --login <username>
+        Login to Docker Hub with the given username, prior to push
+
+    --password <password>
+        Login to Docker Hub using the give password, prior to push
+
     ------ Build options ------
 
     --arg <key> <value>
