@@ -135,11 +135,11 @@ Options:
 
     -l, --tag-latest
         Tag Docker build as latest.
-        Note: This is automatically done when on latest GIT tag.
+        Note: This is automatically done when on latest Git tag.
 
     -t. --tag-test
         Tag Docker build as test.
-        Note: This is automatically GIT is clean.
+        Note: This is automatically done when Git is clean.
 
     -n, --no-cache
         Disable build from cache.
