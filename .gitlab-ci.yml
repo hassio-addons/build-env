@@ -86,8 +86,9 @@ jsonlint:
 
 markdownlint:
   <<: *preflight
-  image: johnchung/markdownlint
-  entrypoint: [""]
+  image:
+    name: johnchung/markdownlint
+    entrypoint: [""]
   before_script:
     - mdl --version
   script:
