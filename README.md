@@ -322,8 +322,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-[gitlabci-shield]: https://gitlab.com/hassio-addons/build-env/badges/master/pipeline.svg
-[gitlabci]: https://gitlab.com/hassio-addons/build-env/commits/master
+[anchore-shield]: https://anchore.io/service/badges/image/bee172b00577dcb9c8dd2e9720387bb960b70f4252229bc8ccec35bce103018b
+[anchore]: https://anchore.io/image/dockerhub/hassioaddons%2Fbuild-env%3Alatest
 [commits-shield]: https://img.shields.io/github/commit-activity/y/hassio-addons/build-env.svg
 [commits]: https://github.com/hassio-addons/build-env/commits/master
 [contributors]: https://github.com/hassio-addons/build-env/graphs/contributors
@@ -334,13 +334,15 @@ SOFTWARE.
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg
 [forum]: https://community.home-assistant.io/?u=frenck
 [frenck]: https://github.com/frenck
+[gitlabci-shield]: https://gitlab.com/hassio-addons/build-env/badges/master/pipeline.svg
+[gitlabci]: https://gitlab.com/hassio-addons/build-env/commits/master
 [issue]: https://github.com/hassio-addons/build-env/issues
 [keepchangelog]: http://keepachangelog.com/en/1.0.0/
 [layers-shield]: https://images.microbadger.com/badges/image/hassioaddons/build-env.svg
 [license-shield]: https://img.shields.io/github/license/hassio-addons/build-env.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2018.svg
 [microbadger]: https://microbadger.com/images/hassioaddons/build-env
-[project-stage-shield]: https://img.shields.io/badge/project%20stage-development-yellowgreen.svg
+[project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
 [pulls-shield]: https://img.shields.io/docker/pulls/hassioaddons/build-env.svg
 [reddit]: https://reddit.com/r/homeassistant
 [releases-shield]: https://img.shields.io/github/release/hassio-addons/build-env.svg
@@ -348,5 +350,3 @@ SOFTWARE.
 [repository]: https://github.com/hassio-addons/repository
 [semver]: http://semver.org/spec/v2.0.0.html
 [version-shield]: https://images.microbadger.com/badges/version/hassioaddons/build-env.svg
-[anchore-shield]: https://anchore.io/service/badges/image/bee172b00577dcb9c8dd2e9720387bb960b70f4252229bc8ccec35bce103018b
-[anchore]: https://anchore.io/image/dockerhub/hassioaddons%2Fbuild-env%3Alatest
