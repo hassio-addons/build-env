@@ -256,9 +256,11 @@ docker run -it --rm --privileged --name build \
 
 ## Changelog
 
-This repository keeps a [change log](CHANGELOG.md) and adhere to
-[Semantic Versioning][semver]. The format of the log is based
-on [Keep a Changelog][keepchangelog].
+This repository keeps a change log using [GitHub's releases][releases]
+functionality. The format of the log is based on
+[Keep a Changelog][keepchangelog].
+
+This project adheres to [Semantic Versioning][semver] for its version numbering.
 
 ## Support
 
