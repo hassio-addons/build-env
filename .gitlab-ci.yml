@@ -1,0 +1,184 @@
+---
+image: docker:stable
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+stages:
+  - preflight
+  - build
+  - scan
+  - deploy
+  - publish
+
+# Generic DIND template
+.dind: &dind
+  before_script:
+    - docker info
+    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
+  services:
+    - docker:dind
+
+# Generic preflight template
+.preflight: &preflight
+  stage: preflight
+  tags:
+    - preflight
+
+# Preflight jobs
+hadolint:
+  <<: *preflight
+  image: hadolint/hadolint:latest
+  before_script:
+    - hadolint --version
+  script:
+    - hadolint "build-env/Dockerfile"
+
+shellcheck:
+  <<: *preflight
+  image:
+    name: koalaman/shellcheck-alpine:stable
+    entrypoint: [""]
+  before_script:
+    - shellcheck --version
+    - apk --no-cache add grep
+    - |
+      find . -type f -print0 | \
+        xargs -0 sed -i 's:#!/usr/bin/with-contenv bash:#!/bin/bash:g'
+  script:
+    - |
+      for file in $(grep -IRl "#\!\(/usr/bin/env \|/bin/\)" --exclude-dir ".git" "${ADDON_TARGET}"); do
+        if ! shellcheck $file; then
+          export FAILED=1
+        else
+          echo "$file OK"
+        fi
+      done
+      if [ "${FAILED}" = "1" ]; then
+        exit 1
+      fi
+
+yamllint:
+  <<: *preflight
+  image: sdesbure/yamllint
+  before_script:
+    - yamllint --version
+  script:
+    - yamllint .
+
+jsonlint:
+  <<: *preflight
+  image: sahsu/docker-jsonlint
+  before_script:
+    - jsonlint --version || true
+  script:
+    - |
+      for file in $(find . -type f -name "*.json"); do
+        if ! jsonlint -q $file; then
+          export FAILED=1
+        else
+          echo "$file OK"
+        fi
+      done
+      if [ "${FAILED}" = "1" ]; then
+        exit 1
+      fi
+
+markdownlint:
+  <<: *preflight
+  image:
+    name: ruby:alpine
+    entrypoint: [""]
+  before_script:
+    - gem install mdl
+    - mdl --version
+  script:
+    - mdl --style all --warnings .
+
+# Build Jobs
+build:
+  <<: *dind
+  stage: build
+  before_script:
+    - apk --no-cache add bash git
+    - docker info
+    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
+    - docker pull hassioaddons/build-env:latest
+  script:
+    - bash ./bin/build.sh -t
+    - |
+      docker tag \
+        "hassioaddons/build-env:test" \
+        "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
+    - |
+      docker push \
+        "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
+  tags:
+    - build
+
+# Scan jobs
+clair:
+  <<: *dind
+  stage: scan
+  allow_failure: true
+  before_script:
+    - docker info
+    - docker run -d --name db arminc/clair-db:latest
+    - docker run -p 6060:6060 --link db:postgres -d --name clair arminc/clair-local-scan:v2.0.1
+    - apk add -U curl ca-certificates
+    - |
+      curl \
+        --silent \
+        --show-error \
+        --location \
+        --fail \
+        --retry 3 \
+        --output /usr/bin/clair-scanner \
+        https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64
+    - chmod +x /usr/bin/clair-scanner
+    - touch clair-whitelist.yml
+    - echo "Waiting for Clair to start"
+    - |
+      while ! nc -z docker 6060; do
+        sleep 1
+        WAIT=$((${WAIT} + 1))
+        if [ "${WAIT}" -gt 30 ]; then
+          echo "Error > Timeout waiting for Clair to start"
+          exit 1
+        fi
+      done
+    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
+    - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
+  script:
+    - |
+      clair-scanner \
+        -c http://docker:6060 \
+        --ip $(hostname -i) \
+        -w clair-whitelist.yml \
+        "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
+  tags:
+    - scan
+
+# Deploy job
+deploy:
+  <<: *dind
+  stage: deploy
+  before_script:
+    - apk --no-cache add bash git
+    - docker info
+    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
+    - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}/:${CI_COMMIT_SHA}"
+    - |
+      docker tag \
+        "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}" \
+        "hassioaddons/build-env:latest"
+    - docker login -u "${DOCKER_LOGIN}" -p "${DOCKER_PASSWORD}"
+  script:
+    - bash ./bin/build.sh -p
+  tags:
+    - deploy
+  only:
+    - master
+    - /^v\d+\.\d+\.\d+(?:-(?:beta|rc)(?:(?:(?:\+|\.)?[a-zA-Z0-9]+)*)?)?$/
+  except:
+    - /^(?!master).+@/

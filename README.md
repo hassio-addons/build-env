@@ -3,25 +3,17 @@
 [![GitHub Release][releases-shield]][releases]
 ![Project Stage][project-stage-shield]
 ![Project Maintenance][maintenance-shield]
-[![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE.md)
 
-[![CircleCI][circleci-shield]][circleci]
-[![Code Climate][codeclimate-shield]][codeclimate]
-[![Bountysource][bountysource-shield]][bountysource]
+[![GitLab CI][gitlabci-shield]][gitlabci]
+[![GitHub Activity][commits-shield]][commits]
+[![Anchore Image Overview][anchore-shield]][anchore]
+
 [![Discord][discord-shield]][discord]
 [![Community Forum][forum-shield]][forum]
 
-[![Patreon][patreon-shield]][patreon]
-[![PayPal][paypal-shield]][paypal]
-[![Bitcoin][bitcoin-shield]][bitcoin]
-
 This is a build environment for building Hass.io Docker images and is
 capable of building Docker images for multiple architectures.
-
-Note: _This build environment is under **DEVELOPMENT**! It still needs
-a lot of testing, and the documentation is far from complete. Use at your
-own risk!_
 
 ## Docker status
 
@@ -53,9 +45,8 @@ own (compatible) Docker instance.
 Adding `-v ~/.docker:/root/.docker` shares your Docker hub credentials with
 the built environment. This line may be omitted in case you don't want to
 push your image. Note that this requires that your credentials be stored in
-`docker/config.json` and will not work if you are using a 
+`docker/config.json` and will not work if you are using a
 [`credsStore`](docker-credsstore) such as `osxkeychain`.
-
 
 Adding `-v "$(pwd)":/docker` shares your current working directory as the
 directory to start the build process from. This line MUST be omitted in case
@@ -329,19 +320,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-[bitcoin-shield]: https://img.shields.io/badge/donate-bitcoin-blue.svg
-[bitcoin]: https://blockchain.info/payment_request?address=3GVzgN6NpVtfXnyg5dQnaujtqVTEDBCtAH
-[bountysource-shield]: https://img.shields.io/bountysource/team/hassio-addons/activity.svg
-[bountysource]: https://www.bountysource.com/teams/hassio-addons/issues
-[circleci-shield]: https://img.shields.io/circleci/project/github/hassio-addons/build-env.svg
-[circleci]: https://circleci.com/gh/hassio-addons/build-env
-[codeclimate-shield]: https://img.shields.io/badge/code%20climate-protected-brightgreen.svg
-[codeclimate]: https://codeclimate.com/github/hassio-addons/build-env
+[gitlabci-shield]: https://gitlab.com/hassio-addons/build-env/badges/master/pipeline.svg
+[gitlabci]: https://gitlab.com/hassio-addons/build-env/commits/master
 [commits-shield]: https://img.shields.io/github/commit-activity/y/hassio-addons/build-env.svg
 [commits]: https://github.com/hassio-addons/build-env/commits/master
 [contributors]: https://github.com/hassio-addons/build-env/graphs/contributors
 [discord-shield]: https://img.shields.io/discord/330944238910963714.svg
-[discord]: https://discord.gg/c5DvZ4e
 [discord]: https://discord.gg/c5DvZ4e
 [docker-credsstore]: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 [dockerhub]: https://hub.docker.com/r/hassioaddons/build-env
@@ -355,10 +339,6 @@ SOFTWARE.
 [license-shield]: https://img.shields.io/github/license/hassio-addons/build-env.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2018.svg
 [microbadger]: https://microbadger.com/images/hassioaddons/build-env
-[patreon-shield]: https://img.shields.io/badge/donate-patreon-blue.svg
-[patreon]: https://www.patreon.com/frenck
-[paypal-shield]: https://img.shields.io/badge/donate-paypal-blue.svg
-[paypal]: https://www.paypal.me/FranckNijhof
 [project-stage-shield]: https://img.shields.io/badge/project%20stage-development-yellowgreen.svg
 [pulls-shield]: https://img.shields.io/docker/pulls/hassioaddons/build-env.svg
 [reddit]: https://reddit.com/r/homeassistant
@@ -367,3 +347,5 @@ SOFTWARE.
 [repository]: https://github.com/hassio-addons/repository
 [semver]: http://semver.org/spec/v2.0.0.html
 [version-shield]: https://images.microbadger.com/badges/version/hassioaddons/build-env.svg
+[anchore-shield]: https://anchore.io/service/badges/image/bee172b00577dcb9c8dd2e9720387bb960b70f4252229bc8ccec35bce103018b
+[anchore]: https://anchore.io/image/dockerhub/hassioaddons%2Fbuild-env%3Alatest
