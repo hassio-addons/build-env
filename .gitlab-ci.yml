@@ -87,10 +87,11 @@ jsonlint:
 markdownlint:
   <<: *preflight
   image: johnchung/markdownlint
+  entrypoint: [""]
   before_script:
-      - mdl --version
+    - mdl --version
   script:
-      - mdl -w .
+    - mdl -w .
 
 # Build Jobs
 build:
