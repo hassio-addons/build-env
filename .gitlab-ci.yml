@@ -32,7 +32,7 @@ hadolint:
   before_script:
     - hadolint --version
   script:
-    - hadolint "${ADDON_TARGET}/Dockerfile"
+    - hadolint "build-env/Dockerfile"
 
 shellcheck:
   <<: *preflight
