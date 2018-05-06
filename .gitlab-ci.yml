@@ -89,7 +89,7 @@ build:
   <<: *dind
   stage: build
   before_script:
-    - apk --no-cache bash
+    - apk --no-cache add bash
     - docker info
     - docker pull hassioaddons/build-env:latest
   script:
@@ -151,7 +151,7 @@ deploy:
   <<: *dind
   stage: deploy
   before_script:
-    - apk --no-cache bash
+    - apk --no-cache add bash
     - docker info
     - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
     - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}/:${CI_COMMIT_SHA}"
