@@ -24,8 +24,7 @@ capable of building Docker images for multiple architectures.
 ## Usage
 
 The whole build environment is based on Docker and is placed into
-a single Docker image. This makes this version portable and removes the
-need for "large" and complicated Bash scripts (as provided by Home Assistant).
+a single Docker image. This makes the build process portable, quick and easy.
 
 ```bash
 docker run --rm --privileged \
@@ -46,7 +45,9 @@ Adding `-v ~/.docker:/root/.docker` shares your Docker hub credentials with
 the built environment. This line may be omitted in case you don't want to
 push your image. Note that this requires that your credentials be stored in
 `docker/config.json` and will not work if you are using a
-[`credsStore`](docker-credsstore) such as `osxkeychain`.
+[`credsStore`](docker-credsstore) such as `osxkeychain`. Alternatively, you can
+use the `--login` and `--password` to pass the credentials into the build
+environment.
 
 Adding `-v "$(pwd)":/docker` shares your current working directory as the
 directory to start the build process from. This line MUST be omitted in case
@@ -265,8 +266,7 @@ Got questions?
 
 You have several options to get them answered:
 
-- The Home Assistant [Community Forums][forums], we have a
-  [dedicated topic][forums] on that forum regarding this repository.
+- The Home Assistant [Community Forum][forum].
 - The Home Assistant [Discord Chat Server][discord] for general Home Assistant
   discussions and questions.
 - Join the [Reddit subreddit][reddit] in [/r/homeassistant][reddit]
@@ -331,7 +331,6 @@ SOFTWARE.
 [dockerhub]: https://hub.docker.com/r/hassioaddons/build-env
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg
 [forum]: https://community.home-assistant.io/?u=frenck
-[forums]: https://community.home-assistant.io/t/repository-community-hass-io-add-ons/24705?u=frenck
 [frenck]: https://github.com/frenck
 [issue]: https://github.com/hassio-addons/build-env/issues
 [keepchangelog]: http://keepachangelog.com/en/1.0.0/
