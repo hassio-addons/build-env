@@ -87,12 +87,13 @@ jsonlint:
 markdownlint:
   <<: *preflight
   image:
-    name: johnchung/markdownlint
+    name: ruby:alpine
     entrypoint: [""]
   before_script:
+    - gem install mdl
     - mdl --version
   script:
-    - mdl -w .
+    - mdl --style all --warnings .
 
 # Build Jobs
 build:
