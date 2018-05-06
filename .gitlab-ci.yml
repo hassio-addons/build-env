@@ -167,7 +167,7 @@ deploy:
     - apk --no-cache add bash git
     - docker info
     - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
-    - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}/:${CI_COMMIT_SHA}"
+    - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
     - |
       docker tag \
         "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}" \
