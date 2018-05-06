@@ -84,6 +84,14 @@ jsonlint:
         exit 1
       fi
 
+markdownlint:
+  <<: *preflight
+  image: johnchung/markdownlint
+  before_script:
+      - mdl --version
+  script:
+      - mdl -w .
+
 # Build Jobs
 build:
   <<: *dind
