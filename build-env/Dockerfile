@@ -32,7 +32,7 @@ RUN \
     && apt-get install -y --no-install-recommends \
         apt-transport-https=1.2.26 \
         ca-certificates=20170717~16.04.1 \
-        curl=7.47.0-1ubuntu2.7 \
+        curl=7.47.0-1ubuntu2.8 \
         git=1:2.7.4-0ubuntu1.3 \
         iproute2=4.3.0-1ubuntu3 \
         jq=1.5+dfsg-1 \
