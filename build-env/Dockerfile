@@ -21,6 +21,7 @@ ENTRYPOINT [ "/usr/bin/build.sh" ]
 COPY rootfs /
 
 # Install base system
+ARG BUILD_ARCH=amd64
 RUN \
     apt-get update \
     \
@@ -44,7 +45,7 @@ RUN \
     && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - \
     \
     && add-apt-repository \
-        "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+        "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
     \
     && apt-get update \
     \
@@ -63,6 +64,16 @@ RUN \
         software-properties-common \
     \
     && chmod a+x /usr/bin/build.sh \
+    \
+    && \
+        if [ "${BUILD_ARCH}" != "arm" ]; then \
+            rm -f /usr/bin/qemu-arm-static; \
+        fi \
+    \
+    && \
+        if [ "${BUILD_ARCH}" != "arm64" ]; then \
+            rm -f /usr/bin/qemu-aarch64-static; \
+        fi \
     \
     && apt-get -y autoremove \
     && apt-get -y purge \
