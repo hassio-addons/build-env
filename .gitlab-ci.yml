@@ -31,7 +31,7 @@ stages:
   <<: *dind
   stage: build
   before_script:
-    - apk --no-cache add bash git
+    - apk --no-cache add curl
     - docker info
     - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
     - |
@@ -107,7 +107,6 @@ stages:
   <<: *dind
   stage: deploy
   before_script:
-    - apk --no-cache add bash git
     - docker info
     - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
     - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}/${ARCH}:${CI_COMMIT_SHA}"
