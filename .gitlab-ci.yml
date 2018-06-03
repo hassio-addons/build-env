@@ -35,7 +35,8 @@ stages:
     - docker info
     - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
   script:
-    - docker build \
+    - |
+      docker build \
         --no-cache \
         --compress \
         --build-arg "BUILD_DATE=$(date +"%Y-%m-%dT%H:%M:%SZ")" \
