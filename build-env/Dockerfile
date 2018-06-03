@@ -35,7 +35,7 @@ RUN \
         ca-certificates=20170717~16.04.1 \
         curl=7.47.0-1ubuntu2.8 \
         git=1:2.7.4-0ubuntu1.3 \
-        golang-1.10=1.10-1ubuntu1~16.04.1 \
+        golang=2:1.6-1ubuntu4 \
         iproute2=4.3.0-1ubuntu3 \
         jq=1.5+dfsg-1 \
         python3-pip=8.1.1-2ubuntu0.4 \
@@ -61,7 +61,7 @@ RUN \
     && apt-get remove -y --purge \
         apt-transport-https \
         curl \
-        golang-1.10 \
+        golang \
         python3-pip \
         software-properties-common \
     \
