@@ -44,7 +44,7 @@ stages:
         --build-arg "BUILD_FROM=${FROM}" \
         --tag \
           "registry.gitlab.com/${CI_PROJECT_PATH}/${ARCH}:${CI_COMMIT_SHA}" \
-        ./docker
+        ./build-env
     - |
       docker push \
         "registry.gitlab.com/${CI_PROJECT_PATH}/${ARCH}:${CI_COMMIT_SHA}"
