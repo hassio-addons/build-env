@@ -1,5 +1,5 @@
 ---
-image: docker:stable
+image: docker:latest
 
 variables:
   DOCKER_DRIVER: overlay2
@@ -9,7 +9,7 @@ stages:
   - build
   - scan
   - deploy
-  - publish
+  - manifest
 
 # Generic DIND template
 .dind: &dind
@@ -17,13 +17,158 @@ stages:
     - docker info
     - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
   services:
-    - docker:dind
+    - name: docker:dind
+      command: ["--experimental"]
 
 # Generic preflight template
 .preflight: &preflight
   stage: preflight
   tags:
     - preflight
+
+# Generic build template
+.build: &build
+  <<: *dind
+  stage: build
+  before_script:
+    - apk --no-cache add bash git
+    - docker info
+    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
+  script:
+    - docker build \
+        --no-cache \
+        --compress \
+        --build-arg "BUILD_DATE=$(date +"%Y-%m-%dT%H:%M:%SZ")" \
+        --build-arg "BUILD_REF=${CI_COMMIT_SHA}" \
+        --build-arg "BUILD_VERSION=${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        --build-arg "BUILD_FROM=${FROM}" \
+        --tag \
+          "registry.gitlab.com/${CI_PROJECT_PATH}/${ARCH}:${CI_COMMIT_SHA}" \
+        ./docker
+    - |
+      docker push \
+        "registry.gitlab.com/${CI_PROJECT_PATH}/${ARCH}:${CI_COMMIT_SHA}"
+  tags:
+    - build
+
+# Generic scan template
+.scan: &scan
+  <<: *dind
+  stage: scan
+  allow_failure: true
+  before_script:
+    - docker info
+    - docker run -d --name db arminc/clair-db:latest
+    - docker run -p 6060:6060 --link db:postgres -d --name clair arminc/clair-local-scan:v2.0.1
+    - apk add -U curl ca-certificates
+    - |
+      curl \
+        --silent \
+        --show-error \
+        --location \
+        --fail \
+        --retry 3 \
+        --output /usr/bin/clair-scanner \
+        https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64
+    - chmod +x /usr/bin/clair-scanner
+    - touch clair-whitelist.yml
+    - echo "Waiting for Clair to start"
+    - |
+      while ! nc -z docker 6060; do
+        sleep 1
+        WAIT=$((${WAIT} + 1))
+        if [ "${WAIT}" -gt 30 ]; then
+          echo "Error > Timeout waiting for Clair to start"
+          exit 1
+        fi
+      done
+    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
+    - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}/${ARCH}:${CI_COMMIT_SHA}"
+  script:
+    - |
+      clair-scanner \
+        -c http://docker:6060 \
+        --ip $(hostname -i) \
+        -w clair-whitelist.yml \
+        "registry.gitlab.com/${CI_PROJECT_PATH}/${ARCH}:${CI_COMMIT_SHA}"
+  tags:
+    - scan
+
+.deploy: &deploy
+  <<: *dind
+  stage: deploy
+  before_script:
+    - apk --no-cache add bash git
+    - docker info
+    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
+    - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}/${ARCH}:${CI_COMMIT_SHA}"
+    - docker login -u "${DOCKER_LOGIN}" -p "${DOCKER_PASSWORD}"
+  script:
+    - |
+      docker tag \
+        "registry.gitlab.com/${CI_PROJECT_PATH}/${ARCH}:${CI_COMMIT_SHA}" \
+        "hassioaddons/build-env:${ARCH}-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}"
+    - |
+      docker push \
+        "hassioaddons/build-env:${ARCH}-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}"
+  tags:
+    - deploy
+
+.manifest: &manifest
+  <<: *dind
+  stage: manifest
+  before_script:
+    - docker info
+    - docker login -u "${DOCKER_LOGIN}" -p "${DOCKER_PASSWORD}"
+  script:
+    - |
+      docker manifest create \
+        "hassioaddons/build-env:${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        "hassioaddons/build-env:arm-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        "hassioaddons/build-env:arm64-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        "hassioaddons/build-env:amd64-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}"
+    - |
+      docker manifest annotate \
+        "hassioaddons/build-env:${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        "hassioaddons/build-env:arm-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        --os=linux \
+        --arch=arm \
+        --variant=v7
+    - |
+      docker manifest annotate \
+        "hassioaddons/build-env:${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        "hassioaddons/build-env:arm64-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        --os=linux \
+        --arch=arm64 \
+        --variant=v8
+    - |
+      docker manifest push \
+        "hassioaddons/build-env:${CI_COMMIT_TAG:-$CI_COMMIT_SHA}"
+    - |
+      docker manifest create \
+        "hassioaddons/build-env:${TAG}" \
+        "hassioaddons/build-env:arm-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        "hassioaddons/build-env:arm64-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        "hassioaddons/build-env:amd64-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}"
+    - |
+      docker manifest annotate \
+        "hassioaddons/build-env:${TAG}" \
+        "hassioaddons/build-env:arm-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        --os=linux \
+        --arch=arm \
+        --variant=v7
+    - |
+      docker manifest annotate \
+        "hassioaddons/build-env:${TAG}" \
+        "hassioaddons/build-env:arm64-${CI_COMMIT_TAG:-$CI_COMMIT_SHA}" \
+        --os=linux \
+        --arch=arm64 \
+        --variant=v8
+    - |
+      docker manifest push \
+        "hassioaddons/build-env:${TAG}"
+  tags:
+    - manifest
 
 # Preflight jobs
 hadolint:
@@ -96,89 +241,100 @@ markdownlint:
     - mdl --style all --warnings .
 
 # Build Jobs
-build:
-  <<: *dind
-  stage: build
-  before_script:
-    - apk --no-cache add bash git
-    - docker info
-    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
-    - docker pull hassioaddons/build-env:latest
-  script:
-    - bash ./bin/build.sh -t
-    - |
-      docker tag \
-        "hassioaddons/build-env:test" \
-        "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
-    - |
-      docker push \
-        "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
-  tags:
-    - build
+build:arm:
+  <<: *build
+  variables:
+    ARCH: arm
+    FROM: arm32v7/ubuntu:xenial
+
+build:arm64:
+  <<: *build
+  variables:
+    ARCH: arm64
+    FROM: arm64v8/ubuntu:xenial
+
+build:amd64:
+  <<: *build
+  variables:
+    ARCH: amd64
+    FROM: ubuntu:xenial
 
 # Scan jobs
-clair:
-  <<: *dind
-  stage: scan
-  allow_failure: true
-  before_script:
-    - docker info
-    - docker run -d --name db arminc/clair-db:latest
-    - docker run -p 6060:6060 --link db:postgres -d --name clair arminc/clair-local-scan:v2.0.1
-    - apk add -U curl ca-certificates
-    - |
-      curl \
-        --silent \
-        --show-error \
-        --location \
-        --fail \
-        --retry 3 \
-        --output /usr/bin/clair-scanner \
-        https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64
-    - chmod +x /usr/bin/clair-scanner
-    - touch clair-whitelist.yml
-    - echo "Waiting for Clair to start"
-    - |
-      while ! nc -z docker 6060; do
-        sleep 1
-        WAIT=$((${WAIT} + 1))
-        if [ "${WAIT}" -gt 30 ]; then
-          echo "Error > Timeout waiting for Clair to start"
-          exit 1
-        fi
-      done
-    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
-    - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
-  script:
-    - |
-      clair-scanner \
-        -c http://docker:6060 \
-        --ip $(hostname -i) \
-        -w clair-whitelist.yml \
-        "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
-  tags:
-    - scan
+clair:arm:
+  <<: *scan
+  variables:
+    ARCH: arm
+
+clair:arm64:
+  <<: *scan
+  variables:
+    ARCH: arm64
+
+clair:amd64:
+  <<: *scan
+  variables:
+    ARCH: amd64
 
 # Deploy job
-deploy:
-  <<: *dind
-  stage: deploy
-  before_script:
-    - apk --no-cache add bash git
-    - docker info
-    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" registry.gitlab.com
-    - docker pull "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}"
-    - |
-      docker tag \
-        "registry.gitlab.com/${CI_PROJECT_PATH}:${CI_COMMIT_SHA}" \
-        "hassioaddons/build-env:latest"
-    - docker login -u "${DOCKER_LOGIN}" -p "${DOCKER_PASSWORD}"
-  script:
-    - bash ./bin/build.sh -p
-  tags:
-    - deploy
+deploy:arm:
+  <<: *deploy
+  variables:
+    ARCH: arm
   only:
     - master
     - /^v\d+\.\d+\.\d+(?:-(?:beta|rc)(?:(?:(?:\+|\.)?[a-zA-Z0-9]+)*)?)?$/
   except:
     - /^(?!master).+@/
+
+deploy:arm64:
+  <<: *deploy
+  variables:
+    ARCH: arm64
+  only:
+    - master
+    - /^v\d+\.\d+\.\d+(?:-(?:beta|rc)(?:(?:(?:\+|\.)?[a-zA-Z0-9]+)*)?)?$/
+  except:
+    - /^(?!master).+@/
+
+deploy:amd64:
+  <<: *deploy
+  variables:
+    ARCH: amd64
+  only:
+    - master
+    - /^v\d+\.\d+\.\d+(?:-(?:beta|rc)(?:(?:(?:\+|\.)?[a-zA-Z0-9]+)*)?)?$/
+  except:
+    - /^(?!master).+@/
+
+stable:
+  <<: *manifest
+  variables:
+    TAG: latest
+  only:
+    - /^v\d+\.\d+\.\d+(?:(?:(?:\+|\.)?[a-zA-Z0-9]+)*)?$/
+  except:
+    - /^(?!master).+@/
+  environment:
+    name: stable
+
+beta:
+  <<: *manifest
+  variables:
+    TAG: beta
+  only:
+    - /^v\d+\.\d+\.\d+(?:-(?:beta|rc)(?:(?:(?:\+|\.)?[a-zA-Z0-9]+)*)?)?$/
+  except:
+    - /^(?!master).+@/
+  environment:
+    name: beta
+
+edge:
+  variables:
+    TAG: edge
+  <<: *manifest
+  only:
+    - master
+  except:
+    - /^(?!master).+@/
+  environment:
+    name: edge

@@ -1,4 +1,7 @@
-FROM ubuntu:16.04
+
+ARG BUILD_FROM=ubuntu:xenial
+# hadolint ignore=DL3006
+FROM ${BUILD_FROM}
 
 # Environment variables
 ENV \
@@ -11,7 +14,7 @@ VOLUME /var/lib/docker
 # Workdir
 WORKDIR /docker
 
-# Entrypoint 
+# Entrypoint
 ENTRYPOINT [ "/usr/bin/build.sh" ]
 
 # Copy root filesystem
