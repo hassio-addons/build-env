@@ -342,7 +342,7 @@ SOFTWARE.
 [license-shield]: https://img.shields.io/github/license/hassio-addons/build-env.svg
 [maintenance-shield]: https://img.shields.io/maintenance/yes/2018.svg
 [microbadger]: https://microbadger.com/images/hassioaddons/build-env
-[project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
+[project-stage-shield]: https://img.shields.io/badge/project%20stage-DEPRECATED-red.svg
 [pulls-shield]: https://img.shields.io/docker/pulls/hassioaddons/build-env.svg
 [reddit]: https://reddit.com/r/homeassistant
 [releases-shield]: https://img.shields.io/github/release/hassio-addons/build-env.svg
